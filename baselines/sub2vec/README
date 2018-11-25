@@ -1,0 +1,50 @@
+README authors: Bijaya Adhikari, Yao Zhang, and B. Aditya Prakash.
+Dated: June 18, 2018. 
+
+
+This is a reference implementation of the sub2vec algorithm described in the following paper.
+
+Bijaya Adhikari, Yao Zhang, Naren Ramakrishnan, and B. Aditya Prakash
+Sub2Vec: Feature Learning for Subgraphs
+PAKDD 2018, Melbourne, Australia
+
+
+Given a set of subgraphs, sub2vec learns a feature representation for each subgraph.
+
+==========================================================================================================================================================================================
+
+Requirement: networkx (https://networkx.github.io/) and gensim (https://radimrehurek.com/gensim/) python packages
+
+
+To see a Demo: 
+   make demo
+   
+For help: 
+   make help
+   
+
+Execute:
+   python src/main.py --input input_dir  --output  output_file --property n
+
+Example: python src/main.py --input input  --output  output --property n
+
+
+==========================================================================================================================================================================================
+Input:
+
+A directory with subgraphs in edgelist files. Each edgelist is in the format:
+node_1 node_2
+1 2
+1 3
+3 4
+
+================================================================================================================================================================================================
+Output:
+
+output: Each line in output represents low dimensional representation of each subgraph  
+
+
+================================================================================================================================================================================================
+Contact:
+
+If you have any questions about the code, please contact Bijaya Adhikari at bijaya[at]cs[dot]vt[dot]edu 

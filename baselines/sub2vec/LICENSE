@@ -1,0 +1,14 @@
+sub2vec
+Copyright (c) 2018
+Bijaya Adhikari, Yao Zhang, Naren Ramakrishnan,and B. Aditya Prakash
+All Rights Reserved
+
+
+
+You may use this code without fee for educational and research purposes.
+Any for-profit use requires written consent of the copyright holders. 
+
+A citation to the following paper will be greatly appreciated:
+Bijaya Adhikari, Yao Zhang, Naren Ramakrishnan, and B. Aditya Prakash
+Sub2Vec: Feature Learning for Subgraphs
+PAKDD 2018, Melbourne, Australia
