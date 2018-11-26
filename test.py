@@ -10,6 +10,7 @@ from sklearn.svm import SVC, LinearSVC
 from sklearn.ensemble import RandomForestClassifier
 from sklearn import preprocessing
 from glob import glob
+from sklearn.preprocessing import Normalizer
 
 def evaluate_embedding(datadir, DS, embeddings):
     graphs = read_graphfile(datadir, DS, max_nodes=None)
@@ -39,6 +40,25 @@ def evaluate_embedding(datadir, DS, embeddings):
         classifier.fit(x_train, y_train)
         accuracies.append(accuracy_score(y_test, classifier.predict(x_test)))
     # print(accuracies)
+    print('not normalized', np.mean(accuracies))
+    normalize=True
+    if normalize:
+        x = Normalizer().fit_transform(x)
+
+    accuracies = []
+    for train_index, test_index in kf.split(x, y):
+        it += 1
+        best_acc1 = 0
+
+        x_train, x_test = x[train_index], x[test_index]
+        y_train, y_test = y[train_index], y[test_index]
+        # x_train, x_val, y_train, y_val = train_test_split(x_train, y_train, test_size=0.1)
+        params = {'C':[0.001, 0.01,0.1,1,10,100,1000]}
+        # classifier = SVC(C=10)
+        classifier = GridSearchCV(SVC(), params, cv=10, scoring='accuracy', verbose=0)
+        classifier.fit(x_train, y_train)
+        accuracies.append(accuracy_score(y_test, classifier.predict(x_test)))
+    print('normalized', np.mean(accuracies))
     return np.mean(accuracies)
 
 if __name__ == '__main__':

@@ -30,6 +30,8 @@ import torch.utils.data
 from tqdm import tqdm
 from glob import glob
 
+from sklearn.preprocessing import LabelEncoder
+
 class GraphSampler(torch.utils.data.Dataset):
     ''' Sample graphs and nodes in graph
     '''
@@ -69,7 +71,15 @@ class GraphSampler(torch.utils.data.Dataset):
             for idx, G in enumerate(graphs):
                 for u in G.nodes():
                     tmp.append(G.node[u]['label'])
-            self.node_label_dim = len(set(tmp))
+
+            node_labels = LabelEncoder().fit_transform(tmp)
+            cnt = 0
+            for idx, G in enumerate(graphs):
+                for u in G.nodes():
+                    G.node[u]['label'] = node_labels[cnt]
+                    cnt+=1
+
+            self.node_label_dim = len(set(node_labels))
             self.input_dim += self.node_label_dim
         else:
             self.node_label_dim = 0
@@ -284,8 +294,7 @@ def read_graphfile(datadir, dataname, max_nodes=None):
             for line in f:
                 line=line.strip("\n")
                 node_labels+=[int(line)]
-        from sklearn.preprocessing import LabelEncoder
-        node_labels = LabelEncoder().fit_transform(node_labels)
+        # node_labels = LabelEncoder().fit_transform(node_labels)
     except IOError:
         print('No node labels')
 
@@ -333,8 +342,6 @@ def read_graphfile(datadir, dataname, max_nodes=None):
     for i in range(1,1+len(adj_list)):
         # indexed from 1 here
         G=nx.from_edgelist(adj_list[i])
-        # if max_nodes is not None and G.number_of_nodes() > max_nodes:
-            # continue
         graphs.append(G)
       
         # add features and labels
@@ -369,10 +376,14 @@ def read_graphfile(datadir, dataname, max_nodes=None):
             
         # indexed from 0
         G = nx.relabel_nodes(G, mapping)
-        # if max_nodes is not None and G.number_of_nodes() > max_nodes:
-            # G = G.subgraph([i for i in range(0, max_nodes)])
+
+        if max_nodes and G.number_of_nodes() > max_nodes:
+            G = G.subgraph([i for i in range(0, max_nodes)])
+
         graphs[idx] = G
 
+    # either max_nodes is 0 or None or 
+    # return [g for g in graphs if not max_nodes or g.number_of_nodes() <= max_nodes]
     return graphs
 
 def remove_singleton(graph):
@@ -387,7 +398,7 @@ def remove_singleton(graph):
 
 def get_data(datadir, DS, max_num_nodes):
     print('reading graphfile ...')
-    graphs = read_graphfile(datadir, DS)
+    graphs = read_graphfile(datadir, DS, max_num_nodes)
     print('number of graphs', len(graphs))
     dataset_sampler = GraphSampler(graphs, normalize=False, max_num_nodes=max_num_nodes)
     return dataset_sampler

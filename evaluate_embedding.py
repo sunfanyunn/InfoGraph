@@ -10,13 +10,13 @@ from sklearn import preprocessing
 from sklearn.metrics import accuracy_score
 
 
-def evaluate_embedding(datadir, DS, embeddings):
+def evaluate_embedding(datadir, DS, embeddings, max_nodes=None):
     """
     context_file = open(os.path.join(datadir, DS, 'context'), 'r').readlines()
     embeddings = [np.sum([embeddings[int(idx),:] for idx in context_file[i].strip().split()], axis=0) for i in range(len(context_file))]
     # print(labels)
     """
-    graphs = read_graphfile(datadir, DS, max_nodes=None)
+    graphs = read_graphfile(datadir, DS, max_nodes=max_nodes)
     labels = [graph.graph['label'] for graph in graphs]
 
     labels = preprocessing.LabelEncoder().fit_transform(labels)

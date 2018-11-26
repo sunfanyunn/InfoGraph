@@ -81,15 +81,12 @@ class Trainer:
             if epoch%self.args.log_interval == 0:
               print('getting embeddings ...')
               embeddings = self.model.get_embeddings(total_num=len(self.dataset_sampler), batch_size=self.batch_size, permutate_sz=1)
-              # save_path = './tmp/emb-{}.npy'.format(batch_num),
               from evaluate_embedding import evaluate_embedding
-              history[epoch] = evaluate_embedding(self.args.datadir, self.args.DS, embeddings)
+              history[epoch] = evaluate_embedding(self.args.datadir, self.args.DS, embeddings, self.args.max_num_nodes)
               print(history)
               # print('saving ...')
 
             if epoch%100 == 0:
                 torch.save(self.model.state_dict(), './tmp/{}.epoch{}'.format(self.args.DS, epoch))
-
-
         print("Optimization Finished!")
 

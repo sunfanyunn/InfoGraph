@@ -89,7 +89,7 @@ def structural_embedding(args):
     
     for epochs in range(10, 210, 10):
         print('epochs', epochs)
-        model = doc.Doc2Vec(sentences, vector_size = dimensions, epochs = epochs, dm = dm, window = window )
+        model = doc.Doc2Vec(sentences, vector_size = dimensions, epochs = epochs, dm = dm, window = window, workers=8)
         vectors = model.docvecs
         embeddings = [[] for _ in range(len(vectors))]
         for i in range(len(vectors)):
