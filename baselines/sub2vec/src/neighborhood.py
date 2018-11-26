@@ -51,7 +51,7 @@ def neighborhood_embedding(args):
     # print(indexToName)
     sentences = doc.TaggedLineDocument(inputDir+'.walk')
 
-    for epochs in range(10, 100, 10):
+    for epochs in range(10, 210, 10):
         print('epochs', epochs)
         model = doc.Doc2Vec(sentences, vector_size = dimensions, epochs = epochs, dm = dm, window = window )
         vectors = model.docvecs

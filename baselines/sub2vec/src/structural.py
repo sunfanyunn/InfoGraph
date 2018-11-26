@@ -87,7 +87,7 @@ def structural_embedding(args):
     indexToName = generateWalkFile(inputDir, args.walkLength, args.p)
     sentences = doc.TaggedLineDocument(inputDir+'.walk')
     
-    for epochs in range(10, 100, 10):
+    for epochs in range(10, 210, 10):
         print('epochs', epochs)
         model = doc.Doc2Vec(sentences, vector_size = dimensions, epochs = epochs, dm = dm, window = window )
         vectors = model.docvecs

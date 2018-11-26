@@ -71,8 +71,8 @@ def evaluate(DS, embeddings):
         y_train, y_test = y[train_index], y[test_index]
         # x_train, x_val, y_train, y_val = train_test_split(x_train, y_train, test_size=0.1)
         params = {'C':[0.001, 0.01,0.1,1,10,100,1000]}
-        classifier = SVC(C=10)
-        # classifier = GridSearchCV(SVC(), params, cv=10, scoring='accuracy', verbose=0)
+        # classifier = SVC(C=10)
+        classifier = GridSearchCV(SVC(), params, cv=10, scoring='accuracy', verbose=0)
         classifier.fit(x_train, y_train)
         accuracies.append(accuracy_score(y_test, classifier.predict(x_test)))
     # print(accuracies)

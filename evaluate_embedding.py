@@ -7,6 +7,7 @@ from sklearn.model_selection import GridSearchCV, StratifiedKFold
 from sklearn.svm import SVC, LinearSVC
 from sklearn.ensemble import RandomForestClassifier
 from sklearn import preprocessing
+from sklearn.metrics import accuracy_score
 
 
 def evaluate_embedding(datadir, DS, embeddings):
@@ -36,14 +37,11 @@ def evaluate_embedding(datadir, DS, embeddings):
         x_train, x_test = x[train_index], x[test_index]
         y_train, y_test = y[train_index], y[test_index]
         # x_train, x_val, y_train, y_val = train_test_split(x_train, y_train, test_size=0.1)
-        # params = {'C':[0.001, 0.01,0.1,1,10,100,1000]}
-        classifier = SVC(C=10)
-        # classifier = GridSearchCV(SVC(), params, cv=10, scoring='accuracy', verbose=0)
-        # classifier.fit(embeddings, labels)
+        params = {'C':[0.001, 0.01,0.1,1,10,100,1000]}
+        # classifier = SVC(C=10)
+        classifier = GridSearchCV(SVC(), params, cv=10, scoring='accuracy', verbose=0)
         classifier.fit(x_train, y_train)
-        from sklearn.metrics import accuracy_score
         accuracies.append(accuracy_score(y_test, classifier.predict(x_test)))
-    print(accuracies)
     print(np.mean(accuracies))
     return np.mean(accuracies)
 

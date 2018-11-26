@@ -34,7 +34,7 @@ class Trainer:
         batch_num = 0
 
 
-        history = []
+        history = {}
         for epoch in range(self.epoch_num):
 
             cur = 0
@@ -82,7 +82,7 @@ class Trainer:
               embeddings = self.model.get_embeddings(total_num=len(self.dataset_sampler), batch_size=self.batch_size, permutate_sz=1)
               # save_path = './tmp/emb-{}.npy'.format(batch_num),
               from evaluate_embedding import evaluate_embedding
-              history.append(evaluate_embedding(self.args.datadir, self.args.DS, embeddings))
+              history[epoch] = evaluate_embedding(self.args.datadir, self.args.DS, embeddings)
               print(history)
               # print('saving ...')
 
