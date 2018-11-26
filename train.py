@@ -13,6 +13,7 @@ class Trainer:
         self.neg_sampling_num = args.neg_sampling_num
         self.lr = args.lr
         self.args = args
+        self.permutate = args.permutate
 
         # with open(os.path.join(self.args.datadir, self.args.DS, 'context'), 'r') as f:
             # texts = f.readlines()
@@ -54,7 +55,7 @@ class Trainer:
                 pos_u = np.array(pos_u)
                 neg_v = np.array(neg_v)
 
-                pos_u, pos_v = self.dataset_sampler.get_batch(pos_u)
+                pos_u, pos_v = self.dataset_sampler.get_batch(pos_u, self.permutate)
                 # print(pos_u['adj'].shape)
                 # print(pos_u['feats'].shape)
                 # print(pos_u['assign_feats'].shape)

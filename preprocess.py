@@ -1,4 +1,4 @@
-import community
+# import community
 import networkx as nx
 import os
 from data_utils import read_graphfile

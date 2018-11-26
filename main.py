@@ -83,12 +83,16 @@ def arg_parse():
     parser.add_argument('--nobias', dest='bias', action='store_const',
             const=False, default=True,
             help='Whether to add bias. Default to True.')
+
     parser.add_argument('--method', dest='method',
             help='Method. Possible values: base, base-set2set, soft-assign')
     parser.add_argument('--name-suffix', dest='name_suffix',
             help='suffix added to the output filename')
     parser.add_argument('--log-interval', dest='log_interval', type=int,
             help='logging interval (epoch)')
+    parser.add_argument('--permutate', dest='permutate', action='store_const', 
+            const=True, default=False,
+            help='Whether to permutate graph while training')
 
     # skipgram related arguments
     parser.add_argument('--neg-sampling-num', dest='neg_sampling_num', type=int,

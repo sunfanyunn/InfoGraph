@@ -198,7 +198,7 @@ class GraphSampler(torch.utils.data.Dataset):
         # self.feat_dim = self.feature_all[0].shape[1]
         # self.assign_feat_dim = self.assign_feat_all[0].shape[1]
 
-    def get_batch(self, idxs):
+    def get_batch(self, idxs, permutate=False):
         
         dim = len(idxs.shape)
         assert dim == 1
@@ -222,7 +222,7 @@ class GraphSampler(torch.utils.data.Dataset):
             ret_num_nodes.append(data['num_nodes'])
             ret_assign_feats.append(data['assign_feats'])
 
-            data = self.get_graph_data(idx, processed=True, permutate=False)
+            data = self.get_graph_data(idx, processed=True, permutate=permutate)
             ret_adj2.append(data['adj'])
             ret_feats2.append(data['feats'])
             ret_num_nodes2.append(data['num_nodes'])
