@@ -168,12 +168,13 @@ class GcnEncoderGraph(nn.Module):
             x = self.act(x)
             if self.bn:
                 x = self.apply_bn(x)
-            out,_ = torch.max(x, dim=1)
-            # out = torch.mean(x, dim=1)
+            # out,_ = torch.max(x, dim=1)
+            out = torch.mean(x, dim=1)
             out_all.append(out)
         x = self.conv_last(x,adj)
         #x = self.act(x)
-        out, _ = torch.max(x, dim=1)
+        # out, _ = torch.max(x, dim=1)
+        out = torch.mean(x, dim=1)
         # out = torch.sum(x, dim=1)
         out_all.append(out)
         if self.concat:
@@ -212,7 +213,7 @@ class GcnSet2SetEncoder(GcnEncoderGraph):
         # ypred = self.pred_model(out)
         # return ypred
 
-
+"""
 class SoftPoolingGcnEncoder(GcnEncoderGraph):
     def __init__(self, max_num_nodes, input_dim, hidden_dim, embedding_dim, label_dim, num_layers,
             assign_hidden_dim, assign_ratio=0.25, assign_num_layers=-1, num_pooling=1,
@@ -336,3 +337,4 @@ class SoftPoolingGcnEncoder(GcnEncoderGraph):
             #print('linkloss: ', self.link_loss)
             return loss + self.link_loss
         return loss
+"""

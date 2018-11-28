@@ -4,7 +4,6 @@ import torch.nn as nn
 import torch.nn.functional as F
 import numpy as np
 from core.encoders import *
-from data_utils import get_data
 #from evaluate_embedding import evaluate_all
 import json
 from torch import optim
@@ -89,18 +88,18 @@ class GraphSkipgram(nn.Module):
 
     adj = Variable(data['adj'].float(), requires_grad=False).cuda()
     h0 = Variable(data['feats'].float()).cuda()
-    #labels.append(data['label'].long().numpy())
     batch_num_nodes = data['num_nodes'].int().numpy()
-    assign_input = Variable(data['assign_feats'].float(), requires_grad=False).cuda() 
+    # labels.append(data['label'].long().numpy())
+    # assign_input = Variable(data['assign_feats'].float(), requires_grad=False).cuda() 
 
     # node_cnt_features = torch.from_numpy(np.array([self.node_cnt_features[idx.item()] for idx in data['idxs']])).float().cuda()
 
     if u:
-        ret = self.u_encoder(h0, adj, batch_num_nodes, assign_x=assign_input)
+        ret = self.u_encoder(h0, adj, batch_num_nodes)
         # return torch.cat([ret, whole_graph_features], dim=1)
         return torch.cat([ret], dim=1)
     else:
-        ret = self.v_encoder(h0, adj, batch_num_nodes, assign_x=assign_input)
+        ret = self.v_encoder(h0, adj, batch_num_nodes)
         # return torch.cat([ret, whole_graph_features], dim=1)
         return torch.cat([ret], dim=1)
 

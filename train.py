@@ -1,5 +1,5 @@
 from model import GraphSkipgram
-from data_utils import get_data
+from data_utils import read_graphfile, GraphSampler
 import torch
 from torch import optim
 import os
@@ -15,18 +15,21 @@ class Trainer:
         self.args = args
         self.permutate = args.permutate
 
-        # with open(os.path.join(self.args.datadir, self.args.DS, 'context'), 'r') as f:
-            # texts = f.readlines()
-        # texts = [list(map(int, x[:-1].split())) for x in texts]
-        # self.op = Options(texts)
+        print('reading graphfile...')
+        graphs = read_graphfile(args.datadir, args.DS, args.max_num_nodes)
+        print('number of graphs', len(graphs))
+        self.dataset_sampler = GraphSampler(graphs,
+                                            features=args.feature_type,
+                                            no_node_labels=args.no_node_labels,
+                                            no_node_attr=args.no_node_attr,
+                                            max_num_nodes=args.max_num_nodes)
 
-        self.dataset_sampler = get_data(self.args.datadir, self.args.DS, self.args.max_num_nodes)
         args.input_dim = self.dataset_sampler.input_dim
 
         self.model = GraphSkipgram(args, self.dataset_sampler)
-        # self.model.dataset_sampler = self.dataset_sampler
         self.num_graphs = len(self.dataset_sampler)
-        print('nubmer of graphs', self.num_graphs)
+        assert self.num_graphs == len(graphs)
+        # print('nubmer of graphs', self.num_graphs)
 
     def train(self):
         if torch.cuda.is_available():

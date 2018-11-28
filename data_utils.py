@@ -35,16 +35,20 @@ from sklearn.preprocessing import LabelEncoder
 class GraphSampler(torch.utils.data.Dataset):
     ''' Sample graphs and nodes in graph
     '''
-    def __init__(self, graphs, features='default', normalize=True, assign_feat='default', max_num_nodes=0):
+    def __init__(self, graphs, features='default',
+                               no_node_labels=False,
+                               no_node_attr=False,
+                               normalize=False, max_num_nodes=0):
         # self.adj_all = []
         # self.len_all = []
         # self.feature_all = []
         # self.label_all = []
         # self.assign_feat_all = []
-        self.normalize = normalize
         self.G_list = graphs
         self.features = features
-        self.assign_feat = assign_feat
+        self.no_node_labels = no_node_labels
+        self.no_node_attr = no_node_attr
+        self.normalize = normalize
         self.max_num_nodes = max_num_nodes
 
         if max_num_nodes == 0:
@@ -53,19 +57,18 @@ class GraphSampler(torch.utils.data.Dataset):
             self.max_num_nodes = max_num_nodes
 
         print('max num nodes', self.max_num_nodes)
-        if features == 'default':
 
-            self.input_dim = 2
-            if 'feat' in graphs[0].node[0]:
-                print('Using node attributes')
-                self.feat_dim = graphs[0].node[0]['feat'].shape[0]
-                self.input_dim += self.feat_dim
-            else:
-                self.feat_dim = 0
-                print('No node attributes')
+        self.input_dim = 2
+        if 'feat' in graphs[0].node[0] and not self.no_node_attr:
+            print('Using node attributes')
+            self.feat_dim = graphs[0].node[0]['feat'].shape[0]
+            self.input_dim += self.feat_dim
+        else:
+            self.feat_dim = 0
+            print('No node attributes')
 
         
-        if 'label' in graphs[0].node[0]:
+        if 'label' in graphs[0].node[0] and not self.no_node_labels:
             print('Using node labels')
             tmp = []
             for idx, G in enumerate(graphs):
@@ -140,20 +143,6 @@ class GraphSampler(torch.utils.data.Dataset):
                                          axis=1)
             g_feat = np.hstack([degs, clusterings])
             f[:, -2:] = g_feat
-            # for i,u in enumerate(G.nodes()):
-                # f[i, -1] = G.degree(u)
-
-            # degs = np.sum(np.array(adj), 1)
-            # degs = np.pad(degs, [0, self.max_num_nodes - G.number_of_nodes()], mode='constant')
-            # degs = np.expand_dims(degs, axis=1)
-            # print(f[:, -1])
-            # f[:, -1] = degs.flatten()
-            # print(f[:, -1])
-            # print(f.shape, degs.shape)
-            # input()
-                # for i,u in enumerate(G.nodes()):
-                    # f[i,:] = G.node[u]['feat']
-            # self.feature_all.append(f)
             ret_gfeat=f
             
         elif self.features == 'id':
@@ -187,11 +176,10 @@ class GraphSampler(torch.utils.data.Dataset):
             # self.feature_all.append(g_feat)
             ret_gfeat = gfeat
 
-        if self.assign_feat == 'id':
-            # self.assign_feat_all.append(
-            ret_assign_feat = np.hstack((np.identity(self.max_num_nodes), ret_gfeat))
-        else:
-            ret_assign_feat = ret_gfeat
+        # if self.assign_feat == 'id':
+            # ret_assign_feat = np.hstack((np.identity(self.max_num_nodes), ret_gfeat))
+        # else:
+            # ret_assign_feat = ret_gfeat
             
         num_nodes = adj.shape[0]
         adj_padded = np.zeros((self.max_num_nodes, self.max_num_nodes))
@@ -201,8 +189,8 @@ class GraphSampler(torch.utils.data.Dataset):
 
         return {'adj': torch.from_numpy(np.array(adj_padded)),
                 'feats': torch.from_numpy(np.array(ret_gfeat)),
-                'num_nodes': torch.from_numpy(np.array(num_nodes)),
-                'assign_feats': torch.from_numpy(np.array(ret_assign_feat))}
+                'num_nodes': torch.from_numpy(np.array(num_nodes))}
+                # 'assign_feats': torch.from_numpy(np.array(ret_assign_feat))}
                 # 'label': G.graph['label'],
 
         # self.feat_dim = self.feature_all[0].shape[1]
@@ -230,24 +218,22 @@ class GraphSampler(torch.utils.data.Dataset):
             ret_adj.append(data['adj'])
             ret_feats.append(data['feats'])
             ret_num_nodes.append(data['num_nodes'])
-            ret_assign_feats.append(data['assign_feats'])
+            # ret_assign_feats.append(data['assign_feats'])
 
             data = self.get_graph_data(idx, processed=True, permutate=permutate)
             ret_adj2.append(data['adj'])
             ret_feats2.append(data['feats'])
             ret_num_nodes2.append(data['num_nodes'])
-            ret_assign_feats2.append(data['assign_feats'])
+            # ret_assign_feats2.append(data['assign_feats'])
 
         
         return {'adj': torch.from_numpy(np.stack(ret_adj)),
                 'feats': torch.from_numpy(np.stack(ret_feats)),
-                'num_nodes': torch.from_numpy(np.stack(ret_num_nodes)),
-                'assign_feats': torch.from_numpy(np.stack(ret_assign_feats))}, \
+                'num_nodes': torch.from_numpy(np.stack(ret_num_nodes))}, \
                 {'adj': torch.from_numpy(np.stack(ret_adj2)),
                 'feats': torch.from_numpy(np.stack(ret_feats2)),
-                'num_nodes': torch.from_numpy(np.stack(ret_num_nodes2)),
-                'assign_feats': torch.from_numpy(np.stack(ret_assign_feats2))
-                }
+                'num_nodes': torch.from_numpy(np.stack(ret_num_nodes2))}
+                # 'assign_feats': torch.from_numpy(np.stack(ret_assign_feats2))
 
     def __len__(self):
         return len(self.G_list)
@@ -395,10 +381,3 @@ def remove_singleton(graph):
     for v in reversed(sorted(del_list)):
         graph.remove_vertex(v)
     return graph
-
-def get_data(datadir, DS, max_num_nodes):
-    print('reading graphfile ...')
-    graphs = read_graphfile(datadir, DS, max_num_nodes)
-    print('number of graphs', len(graphs))
-    dataset_sampler = GraphSampler(graphs, normalize=False, max_num_nodes=max_num_nodes)
-    return dataset_sampler

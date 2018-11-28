@@ -19,25 +19,6 @@ import argparse
 
 def arg_parse():
     parser = argparse.ArgumentParser(description='Graph-skipgram Arguments.')
-    """
-    io_parser = parser.add_mutually_exclusive_group(required=False)
-    io_parser.add_argument('--dataset', dest='dataset', 
-            help='Input dataset.')
-    benchmark_parser = io_parser.add_argument_group()
-    benchmark_parser.add_argument('--bmname', dest='bmname',
-            help='Name of the benchmark dataset')
-    io_parser.add_argument('--pkl', dest='pkl_fname',
-            help='Name of the pkl data file')
-
-    softpool_parser = parser.add_argument_group()
-    softpool_parser.add_argument('--assign-ratio', dest='assign_ratio', type=float,
-            help='ratio of number of nodes in consecutive layers')
-    softpool_parser.add_argument('--num-pool', dest='num_pool', type=int,
-            help='number of pooling layers')
-    parser.add_argument('--linkpred', dest='linkpred', action='store_const',
-            const=True, default=False,
-            help='Whether link prediction side objective is used')
-    """
     # general arguments
     parser.add_argument('--datadir', dest='datadir',
             help='Directory where benchmark is located')
@@ -47,6 +28,11 @@ def arg_parse():
             help='Tensorboard log directory')
     parser.add_argument('--cuda', dest='cuda',
             help='CUDA.')
+    parser.add_argument('--name-suffix', dest='name_suffix',
+            help='suffix added to the output filename')
+    parser.add_argument('--log-interval', dest='log_interval', type=int,
+            help='logging interval (epoch)')
+    # learning related arguments
     parser.add_argument('--lr', dest='lr', type=float,
             help='Learning rate.')
     parser.add_argument('--clip', dest='clip', type=float,
@@ -55,18 +41,22 @@ def arg_parse():
             help='Batch size.')
     parser.add_argument('--epochs', dest='num_epochs', type=int,
             help='Number of epochs to train.')
-
-    # GCN related arguments
+    parser.add_argument('--neg-sampling-num', dest='neg_sampling_num', type=int,
+            help='number of negative sampling')
+    parser.add_argument('--permutate', dest='permutate', action='store_const', 
+            const=True, default=False,
+            help='Whether to permutate graph while training')
+    # model related arguments
+    parser.add_argument('--no-node-labels', dest='no_node_labels', action='store_const',
+            const=True, default=False,
+            help='whether to not use node labels or not')
+    parser.add_argument('--no-node-attr', dest='no_node_attr', action='store_const',
+            const=True, default=False,
+            help='whether to not use node attributes or not')
     parser.add_argument('--max-num-nodes', dest='max_num_nodes', type=int,
-            help='Maximum number of nodes (ignore graghs with nodes exceeding the number.')
-    # parser.add_argument('--train-ratio', dest='train_ratio', type=float,
-            # help='Ratio of number of graphs training set to all graphs.')
-    # parser.add_argument('--num_workers', dest='num_workers', type=int,
-            # help='Number of workers to load data.')
+            help='Maximum number of nodes (sample graghs with nodes exceeding the number.')
     parser.add_argument('--feature', dest='feature_type',
             help='Feature used for encoder. Can be: id, deg')
-    # parser.add_argument('--input-dim', dest='input_dim', type=int,
-            # help='Input feature dimension')
     parser.add_argument('--hidden-dim', dest='hidden_dim', type=int,
             help='Hidden dimension')
     parser.add_argument('--output-dim', dest='output_dim', type=int,
@@ -83,20 +73,8 @@ def arg_parse():
     parser.add_argument('--nobias', dest='bias', action='store_const',
             const=False, default=True,
             help='Whether to add bias. Default to True.')
-
     parser.add_argument('--method', dest='method',
             help='Method. Possible values: base, base-set2set, soft-assign')
-    parser.add_argument('--name-suffix', dest='name_suffix',
-            help='suffix added to the output filename')
-    parser.add_argument('--log-interval', dest='log_interval', type=int,
-            help='logging interval (epoch)')
-    parser.add_argument('--permutate', dest='permutate', action='store_const', 
-            const=True, default=False,
-            help='Whether to permutate graph while training')
-
-    # skipgram related arguments
-    parser.add_argument('--neg-sampling-num', dest='neg_sampling_num', type=int,
-            help='number of negative sampling')
 
     parser.set_defaults(datadir='data',
                         max_num_nodes=0,
