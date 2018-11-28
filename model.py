@@ -112,32 +112,54 @@ class GraphSkipgram(nn.Module):
 
     # embed_u = self.enc(u_pos, u=True)
     # embed_v = self.enc(v_pos, u=False)
-
     # print(embed_u.detach().cpu().numpy())
     # print(embed_v.detach().cpu().numpy())
 
-    score  = torch.mul(embed_u, embed_v)
-    score = torch.sum(score, dim=1)
-    # print(score.detach().cpu().numpy())
-    log_target = F.logsigmoid(score).squeeze()
-    
-    neg_embed_v = self.v_embeddings(self.enc(v_neg, u=False))
-    neg_embed_v = neg_embed_v.view(batch_size, neg_sampling_size, self.embedding_dim)
+    dot = False
+    if dot:
+        score  = torch.mul(embed_u, embed_v)
+        score = torch.sum(score, dim=1)
+        log_target = F.logsigmoid(score).squeeze()
+        
+        neg_embed_v = self.v_embeddings(self.enc(v_neg, u=False))
+        neg_embed_v = neg_embed_v.view(batch_size, neg_sampling_size, self.embedding_dim)
 
-    # neg_embed_v = self.enc(v_neg, u=False)
-    # neg_embed_v = neg_embed_v.view(batch_size, neg_sampling_size, -1)
+        # neg_embed_v: [batch_size, neg_sampling_size, embedding_size]
+        # embed_u.unsqueeze(2) --> [batch_sizse, embedding_size, 1]
+        # torch.bmm().squeeze() --> [batch_size, neg_sampling_size]
 
-    # neg_embed_v: [batch_size, neg_sampling_size, embedding_size]
-    # embed_u.unsqueeze(2) --> [batch_sizse, embedding_size, 1]
-    # torch.bmm().squeeze() --> [batch_size, neg_sampling_size]
-    neg_score = torch.bmm(neg_embed_v, embed_u.unsqueeze(2))
-    neg_score = neg_score.view(batch_size, neg_sampling_size)
-    neg_score = torch.sum(neg_score, dim=1)
-    sum_log_sampled = F.logsigmoid(-1*neg_score).squeeze()
+        neg_score = torch.bmm(neg_embed_v, embed_u.unsqueeze(2))
+        neg_score = neg_score.view(batch_size, neg_sampling_size)
+        neg_score = torch.sum(neg_score, dim=1)
+        sum_log_sampled = F.logsigmoid(-1*neg_score).squeeze()
 
-    loss = log_target + sum_log_sampled
+        loss = log_target + sum_log_sampled
 
-    return -1*loss.sum()/batch_size
+        return -1*loss.sum()/batch_size
+    else:
+        score = (embed_u - embed_v) ** 2
+        score = torch.sum(score, dim=1)
+        log_target = score.squeeze()
+        # log_target = F.logsigmoid(score).squeeze()
+        # log_target --> [batch_size]
+        
+        neg_embed_v = self.v_embeddings(self.enc(v_neg, u=False))
+        neg_embed_v = neg_embed_v.view(batch_size, neg_sampling_size, self.embedding_dim)
+
+        tmp = (neg_embed_v - embed_u.unsqueeze(1)) ** 2
+        # tmp --> [batch_size, neg_sampleing_size, embedding_dim]
+        neg_score = torch.sum(tmp, dim=1)
+        # neg_score --> [batch_size, embedding_dim]
+
+        neg_score = torch.mean(-1*neg_score, dim=1)
+        # sum_log_sampled = F.logsigmoid(-1*neg_score).squeeze()
+        sum_log_sampled = neg_score.squeeze()
+
+        # sum_log_sampled--> 
+        loss = log_target + sum_log_sampled
+
+        # return -1*loss.sum()/batch_size
+        return loss.sum()/batch_size
 
   def get_embeddings(self, total_num, batch_size=32, permutate_sz=1):
       res = []

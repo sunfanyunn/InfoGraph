@@ -90,12 +90,12 @@ def arg_parse():
                         num_workers=1,
                         # input_dim=18,
                         hidden_dim=50,
-                        output_dim=1024,
+                        output_dim=100,
                         num_gc_layers=3,
                         dropout=0.0,
                         method='base',
                         name_suffix='',
-                        neg_sampling_num=10,
+                        neg_sampling_num=20,
                         num_pool=1
                        )
     return parser.parse_args()

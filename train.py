@@ -39,7 +39,7 @@ class Trainer:
 
 
         history = {}
-        for epoch in range(self.epoch_num):
+        for epoch in range(self.epoch_num+1):
 
 
             losses = []
@@ -89,10 +89,25 @@ class Trainer:
                 from evaluate_embedding import evaluate_embedding
                 history[epoch] = (evaluate_embedding(self.args.datadir, self.args.DS, embeddings, self.args.max_num_nodes), np.mean(losses))
                 print(history)
+                accuracies = []
+                for h in history.values():
+                    accuracies.append(h[0])
+                print('=================')
+                print('max', np.max(accuracies))
+                print('mean', np.mean(accuracies))
+                print('=================')
 
-
-
+            
            # if epoch%100 == 0:
                 # torch.save(self.model.state_dict(), './tmp/{}.epoch{}'.format(self.args.DS, epoch))
-        print("Optimization Finished!")
 
+        with open('log', 'a+') as f:
+            accuracies = []
+            for h in history.values():
+                accuracies.append(h[0])
+            print('=================')
+            print('max', np.max(accuracies))
+            print('mean', np.mean(accuracies))
+            print('=================')
+            print("Optimization Finished!")
+            log.write('{},{}\n'.format(np.max(accuracies), np.mean(accuracies)))
