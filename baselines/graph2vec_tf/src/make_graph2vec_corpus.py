@@ -141,14 +141,15 @@ def wlk_relabel_and_dump_hdd_version(fnames,max_h,node_label_attr_name='Label'):
 
 
 def wlk_relabel_and_dump_memory_version(fnames,max_h,node_label_attr_name='Label'):
+    print('wlk_relabel_and_dump_memory_version')
     global label_to_compressed_label_map
 
     t0 = time()
     graphs = [nx.read_gexf(fname) for fname in fnames]
-    for g in graphs:
-        if not g.is_directed() or not nx.is_directed_acyclic_graph(g):
-            print(g)
-            raw_input()
+    # for g in graphs:
+        # if not g.is_directed() or not nx.is_directed_acyclic_graph(g):
+            # print(g)
+            # raw_input()
     print 'loaded all graphs in {} sec'.format(round(time() - t0, 2))
 
     t0 = time()

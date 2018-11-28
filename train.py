@@ -38,6 +38,8 @@ class Trainer:
         history = {}
         for epoch in range(self.epoch_num):
 
+
+            losses = []
             cur = 0
             while cur < self.num_graphs:
                 pos_u = []
@@ -72,21 +74,22 @@ class Trainer:
                 loss.backward()
                 optimizer.step()
 
-
+                losses.append(loss.data[0])
                 if batch_num%10 == 0:
                     print('epoch %d, batch=%2d : loss=%4.3f\n' %(epoch, batch_num, loss.data[0]),end="")
 
                 batch_num = batch_num + 1 
 
             if epoch%self.args.log_interval == 0:
-              print('getting embeddings ...')
-              embeddings = self.model.get_embeddings(total_num=len(self.dataset_sampler), batch_size=self.batch_size, permutate_sz=1)
-              from evaluate_embedding import evaluate_embedding
-              history[epoch] = evaluate_embedding(self.args.datadir, self.args.DS, embeddings, self.args.max_num_nodes)
-              print(history)
-              # print('saving ...')
+                print('getting embeddings ...')
+                embeddings = self.model.get_embeddings(total_num=len(self.dataset_sampler), batch_size=self.batch_size, permutate_sz=1)
+                from evaluate_embedding import evaluate_embedding
+                history[epoch] = (evaluate_embedding(self.args.datadir, self.args.DS, embeddings, self.args.max_num_nodes), np.mean(losses))
+                print(history)
 
-            if epoch%100 == 0:
-                torch.save(self.model.state_dict(), './tmp/{}.epoch{}'.format(self.args.DS, epoch))
+
+
+           # if epoch%100 == 0:
+                # torch.save(self.model.state_dict(), './tmp/{}.epoch{}'.format(self.args.DS, epoch))
         print("Optimization Finished!")
 

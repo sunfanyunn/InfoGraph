@@ -32,14 +32,14 @@ def main(args):
 
     wl_extn = 'g2v'+str(wlk_h)
     assert os.path.exists(corpus_dir), "File {} does not exist".format(corpus_dir)
-    assert os.path.exists(output_dir), "Dir {} does not exist".format(output_dir)
+    # assert os.path.exists(output_dir), "Dir {} does not exist".format(output_dir)
 
     graph_files = get_files(dirname=corpus_dir, extn='.gexf', max_files=0)
     logging.info('Loaded {} graph file names form {}'.format(len(graph_files),corpus_dir))
 
 
     t0 = time()
-    # wlk_relabel_and_dump_memory_version(graph_files, max_h=wlk_h, node_label_attr_name=label_filed_name)
+    wlk_relabel_and_dump_memory_version(graph_files, max_h=wlk_h, node_label_attr_name=label_filed_name)
     logging.info('dumped sg2vec sentences in {} sec.'.format(time() - t0))
 
     t0 = time()
