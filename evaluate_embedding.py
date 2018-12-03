@@ -1,5 +1,6 @@
 from data_utils import read_graphfile
 import numpy as np
+import pandas as pd
 import os
 
 from sklearn.model_selection import cross_val_score
@@ -8,7 +9,26 @@ from sklearn.svm import SVC, LinearSVC
 from sklearn.ensemble import RandomForestClassifier
 from sklearn import preprocessing
 from sklearn.metrics import accuracy_score
+from sklearn.manifold import TSNE
+import matplotlib.pyplot as plt
+import seaborn as sns
 
+def draw_plot(datadir, DS, embeddings, fname, max_nodes=None):
+    graphs = read_graphfile(datadir, DS, max_nodes=max_nodes)
+    labels = [graph.graph['label'] for graph in graphs]
+
+    labels = preprocessing.LabelEncoder().fit_transform(labels)
+    x, y = np.array(embeddings), np.array(labels)
+    print('fitting TSNE ...')
+    x = TSNE(n_components=2).fit_transform(x)
+
+    plt.close()
+    df = pd.DataFrame(columns=['x0', 'x1', 'Y'])
+
+    df['x0'], df['x1'], df['Y'] = x[:,0], x[:,1], y
+    sns.pairplot(x_vars=['x0'], y_vars=['x1'], data=df, hue="Y", size=5)
+    plt.legend()
+    plt.savefig(fname)
 
 def evaluate_embedding(datadir, DS, embeddings, max_nodes=None):
     """
@@ -37,9 +57,12 @@ def evaluate_embedding(datadir, DS, embeddings, max_nodes=None):
         x_train, x_test = x[train_index], x[test_index]
         y_train, y_test = y[train_index], y[test_index]
         # x_train, x_val, y_train, y_val = train_test_split(x_train, y_train, test_size=0.1)
-        params = {'C':[0.001, 0.01,0.1,1,10,100,1000]}
-        # classifier = SVC(C=10)
-        classifier = GridSearchCV(SVC(), params, cv=10, scoring='accuracy', verbose=0)
+        search=True
+        if search:
+            params = {'C':[0.001, 0.01,0.1,1,10,100,1000]}
+            classifier = GridSearchCV(SVC(), params, cv=10, scoring='accuracy', verbose=0)
+        else:
+            classifier = SVC(C=10)
         classifier.fit(x_train, y_train)
         accuracies.append(accuracy_score(y_test, classifier.predict(x_test)))
     print(np.mean(accuracies))

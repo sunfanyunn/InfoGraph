@@ -32,6 +32,10 @@ def arg_parse():
             help='suffix added to the output filename')
     parser.add_argument('--log-interval', dest='log_interval', type=int,
             help='logging interval (epoch)')
+    # parser.add_argument('--load-on-train', dest='load_on_train', action='store_const',
+            # const=True, default=False,
+            # help='load graph data on training',
+
     # learning related arguments
     parser.add_argument('--lr', dest='lr', type=float,
             help='Learning rate.')
@@ -46,6 +50,7 @@ def arg_parse():
     parser.add_argument('--permutate', dest='permutate', action='store_const', 
             const=True, default=False,
             help='Whether to permutate graph while training')
+
     # model related arguments
     parser.add_argument('--no-node-labels', dest='no_node_labels', action='store_const',
             const=True, default=False,
@@ -61,8 +66,8 @@ def arg_parse():
             help='Hidden dimension')
     parser.add_argument('--output-dim', dest='output_dim', type=int,
             help='Output dimension')
-    parser.add_argument('--num-classes', dest='num_classes', type=int,
-            help='Number of label classes')
+    # parser.add_argument('--num-classes', dest='num_classes', type=int,
+            # help='Number of label classes')
     parser.add_argument('--num-gc-layers', dest='num_gc_layers', type=int,
             help='Number of graph convolution layers before each pooling')
     parser.add_argument('--nobn', dest='bn', action='store_const',
@@ -75,6 +80,9 @@ def arg_parse():
             help='Whether to add bias. Default to True.')
     parser.add_argument('--method', dest='method',
             help='Method. Possible values: base, base-set2set, soft-assign')
+    parser.add_argument('--loss-type', dest='loss_type',
+            help='Loss function type')
+
 
     parser.set_defaults(datadir='data',
                         max_num_nodes=0,
@@ -87,12 +95,13 @@ def arg_parse():
                         # train_ratio=0.8,
                         # test_ratio=0.1,
                         log_interval=100,
-                        num_workers=1,
+                        num_workers=8,
                         # input_dim=18,
                         hidden_dim=50,
                         output_dim=100,
                         num_gc_layers=3,
                         dropout=0.0,
+                        loss_type='l2',
                         method='base',
                         name_suffix='',
                         neg_sampling_num=20,

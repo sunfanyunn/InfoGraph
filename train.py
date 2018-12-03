@@ -4,6 +4,8 @@ import torch
 from torch import optim
 import os
 import numpy as np
+import gc
+from evaluate_embedding import evaluate_embedding, draw_plot
 
 class Trainer:
     def __init__(self, args):
@@ -39,8 +41,21 @@ class Trainer:
 
 
         history = {}
-        for epoch in range(self.epoch_num+1):
 
+        print('getting embeddings ...')
+        embeddings = self.model.get_embeddings(total_num=len(self.dataset_sampler), batch_size=self.batch_size, permutate_sz=1)
+        history[-1] = (evaluate_embedding(self.args.datadir, self.args.DS, embeddings, self.args.max_num_nodes), np.nan)
+        draw_plot(self.args.datadir, self.args.DS, embeddings, 'fig/{}_-1.png'.format(self.args.DS))
+        print(history)
+        accuracies = []
+        for h in history.values():
+            accuracies.append(h[0])
+        print('=================')
+        print('max', np.max(accuracies))
+        print('mean', np.mean(accuracies))
+        print('=================')
+
+        for epoch in range(self.epoch_num+1):
 
             losses = []
             cur = 0
@@ -82,16 +97,20 @@ class Trainer:
                     print('epoch %d, batch=%2d : loss=%4.3f\n' %(epoch, batch_num, loss.data[0]),end="")
 
                 batch_num = batch_num + 1 
+                # print(batch_num)
+                # torch.cuda.empty_cache()
+                # gc.collect()
 
             if epoch%self.args.log_interval == 0:
                 print('getting embeddings ...')
                 embeddings = self.model.get_embeddings(total_num=len(self.dataset_sampler), batch_size=self.batch_size, permutate_sz=1)
-                from evaluate_embedding import evaluate_embedding
                 history[epoch] = (evaluate_embedding(self.args.datadir, self.args.DS, embeddings, self.args.max_num_nodes), np.mean(losses))
+                # history[batch_num] = (evaluate_embedding(self.args.datadir, self.args.DS, embeddings, self.args.max_num_nodes), np.mean(losses))
                 print(history)
                 accuracies = []
                 for h in history.values():
                     accuracies.append(h[0])
+                draw_plot(self.args.datadir, self.args.DS, embeddings, 'fig/{}_{}.png'.format(self.args.DS, epoch))
                 print('=================')
                 print('max', np.max(accuracies))
                 print('mean', np.mean(accuracies))
@@ -101,7 +120,8 @@ class Trainer:
            # if epoch%100 == 0:
                 # torch.save(self.model.state_dict(), './tmp/{}.epoch{}'.format(self.args.DS, epoch))
 
-        with open('log', 'a+') as f:
+        fname = '{}-nor.log'.format(self.args.DS) if self.args.no_node_attr else '{}-all.log'.format(self.args.DS)
+        with open(fname, 'a+') as f:
             accuracies = []
             for h in history.values():
                 accuracies.append(h[0])
@@ -110,4 +130,4 @@ class Trainer:
             print('mean', np.mean(accuracies))
             print('=================')
             print("Optimization Finished!")
-            log.write('{},{}\n'.format(np.max(accuracies), np.mean(accuracies)))
+            f.write('{},{},{}\n'.format(self.args.num_gc_layers,np.max(accuracies), np.mean(accuracies)))

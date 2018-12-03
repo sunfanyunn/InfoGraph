@@ -29,8 +29,8 @@ import torch
 import torch.utils.data
 from tqdm import tqdm
 from glob import glob
-
 from sklearn.preprocessing import LabelEncoder
+
 
 class GraphSampler(torch.utils.data.Dataset):
     ''' Sample graphs and nodes in graph
@@ -92,10 +92,15 @@ class GraphSampler(torch.utils.data.Dataset):
         print('node attribute dim', self.feat_dim)
         print('node label dim', self.node_label_dim)
 
-        self.all_data = []
-        print('loading graph data ...')
-        for i in tqdm(range(len(graphs))):
-            self.all_data.append(self.get_graph_data(i))
+        if self.max_num_nodes < 2000:
+            self.load_on_train = False
+            self.all_data = []
+            print('loading graph data ...')
+            for i in tqdm(range(len(graphs))):
+                self.all_data.append(self.get_graph_data(i))
+        else:
+            self.load_on_train = True
+            print('load on train')
 
     def get_graph_data(self, graphidx, processed=False, permutate=False):
         
@@ -157,6 +162,8 @@ class GraphSampler(torch.utils.data.Dataset):
             ret_gfeat = degs
 
         elif self.features == 'struct':
+            assert False
+            """
             degs = np.sum(np.array(adj), 1)
             degs = np.expand_dims(np.pad(degs, [0, self.max_num_nodes - G.number_of_nodes()],
                                          'constant'),
@@ -168,13 +175,14 @@ class GraphSampler(torch.utils.data.Dataset):
                                          axis=1)
             g_feat = np.hstack([degs, clusterings])
             if 'feat' in G.node[0]:
-                node_feats = np.array([G.node[i]['feat'] for i in range(G.number_of_nodes())])
                 node_feats = np.pad(node_feats, ((0, self.max_num_nodes - G.number_of_nodes()), (0, 0)),
+                node_feats = np.array([G.node[i]['feat'] for i in range(G.number_of_nodes())])
                                     'constant')
                 g_feat = np.hstack([g_feat, node_feats])
 
             # self.feature_all.append(g_feat)
             ret_gfeat = gfeat
+            """
 
         # if self.assign_feat == 'id':
             # ret_assign_feat = np.hstack((np.identity(self.max_num_nodes), ret_gfeat))
@@ -214,13 +222,13 @@ class GraphSampler(torch.utils.data.Dataset):
         for idx in idxs:
 
         #    idx = idx.item()
-            data = self.get_graph_data(idx, processed=True)
+            data = self.get_graph_data(idx, processed=not self.load_on_train)
             ret_adj.append(data['adj'])
             ret_feats.append(data['feats'])
             ret_num_nodes.append(data['num_nodes'])
             # ret_assign_feats.append(data['assign_feats'])
 
-            data = self.get_graph_data(idx, processed=True, permutate=permutate)
+            data = self.get_graph_data(idx, processed=not self.load_on_train, permutate=permutate)
             ret_adj2.append(data['adj'])
             ret_feats2.append(data['feats'])
             ret_num_nodes2.append(data['num_nodes'])
