@@ -101,7 +101,7 @@ def arg_parse():
                         output_dim=100,
                         num_gc_layers=3,
                         dropout=0.0,
-                        loss_type='l2',
+                        loss_type='bce',
                         method='base',
                         name_suffix='',
                         neg_sampling_num=20,

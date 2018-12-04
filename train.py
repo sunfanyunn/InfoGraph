@@ -120,7 +120,8 @@ class Trainer:
            # if epoch%100 == 0:
                 # torch.save(self.model.state_dict(), './tmp/{}.epoch{}'.format(self.args.DS, epoch))
 
-        fname = '{}-nor.log'.format(self.args.DS) if self.args.no_node_attr else '{}-all.log'.format(self.args.DS)
+        # fname = '{}-nor.log'.format(self.args.DS) if self.args.no_node_attr else '{}-all.log'.format(self.args.DS)
+        fname = 'log'
         with open(fname, 'a+') as f:
             accuracies = []
             for h in history.values():
@@ -130,4 +131,12 @@ class Trainer:
             print('mean', np.mean(accuracies))
             print('=================')
             print("Optimization Finished!")
-            f.write('{},{},{}\n'.format(self.args.num_gc_layers,np.max(accuracies), np.mean(accuracies)))
+            f.write('{},{},{},{},{},{},{},{}\n'.format(self.args.DS,
+                                                 'nor' if self.args.no_node_attr else 'all',
+                                                 self.args.num_gc_layers,
+                                                 self.args.loss_type,
+                                                 history[-1][0],
+                                                 history[self.epoch_num][0],
+                                                 np.max(accuracies),
+                                                 np.mean(accuracies)))
+

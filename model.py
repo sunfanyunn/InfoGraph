@@ -140,27 +140,17 @@ class GraphSkipgram(nn.Module):
         score  = torch.mul(embed_u, embed_v)
         score = torch.sum(score, dim=1)
         log_target = F.logsigmoid(score).squeeze()
-        
-        # neg_embed_v = self.v_embeddings(self.enc(v_neg, u=False))
-        # neg_embed_v = neg_embed_v.view(batch_size, neg_sampling_size, self.embedding_dim)
-
-        # neg_embed_v: [batch_size, neg_sampling_size, embedding_size]
-        # embed_u.unsqueeze(2) --> [batch_sizse, embedding_size, 1]
-        # torch.bmm().squeeze() --> [batch_size, neg_sampling_size]
 
         neg_score = torch.bmm(neg_embed_v, embed_u.unsqueeze(2))
         neg_score = neg_score.view(batch_size, neg_sampling_size)
         neg_score = torch.sum(neg_score, dim=1)
         sum_log_sampled = F.logsigmoid(-1*neg_score).squeeze()
-
         loss = log_target + sum_log_sampled
-
         return -1*loss.sum()/batch_size
 
-    elif loss_type == 'bce':
+    if loss_type == 'bce':
 
         loss_fn = nn.BCELoss()
-
         X = torch.cat((embed_u, embed_v), 1)
         # pred = F.sigmoid(self.fc2(F.relu(self.fc1(X))))
         pred = F.sigmoid(self.fc2(X))
@@ -184,7 +174,7 @@ class GraphSkipgram(nn.Module):
         # return loss.sum()/batch_size
         return loss/batch_size
 
-    elif loss_type == 'l2':
+    if loss_type == 'l2':
         score = (embed_u - embed_v) ** 2
         score = torch.sum(score, dim=1)
         log_target = score.squeeze()
