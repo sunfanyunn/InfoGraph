@@ -87,22 +87,17 @@ class skipgram(object):
                 t0 = time()
                 step = 0
                 while corpus.epoch_flag == False:
-                    batch_data, batch_labels = corpus.generate_batch_from_file(batch_size)# get (target,context) wordid tuples
+                    # get (target,context) wordid tuples
+                    batch_data, batch_labels = corpus.generate_batch_from_file(batch_size)
 
                     feed_dict = {self.batch_inputs:batch_data,self.batch_labels:batch_labels}
                     _,loss_val = sess.run([self.optimizer,self.loss],feed_dict=feed_dict)
 
                     loss += loss_val
-
-                    # if step % 100 == 0:
-                        # if step > 0:
-                            # average_loss = loss/step
-                            # logging.info( 'Epoch: %d : Average loss for step: %d : %f'%(i,step,average_loss))
                     step += 1
 
                 corpus.epoch_flag = False
                 epoch_time = time() - t0
-                # logging.info('#########################   Epoch: %d :  %f, %.2f sec.  #####################' % (i, loss/step,epoch_time))
 
                 if i%50 == 0:
                     print('epochs', i, 'loss', loss/step)
@@ -112,5 +107,5 @@ class skipgram(object):
 
                 loss = 0
             #done with training
-            # final_embeddings = self.normalized_embeddings.eval()
-        # return final_embeddings
+            final_embeddings = self.normalized_embeddings.eval()
+        return final_embeddings

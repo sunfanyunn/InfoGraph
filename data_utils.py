@@ -35,16 +35,25 @@ from sklearn.preprocessing import LabelEncoder
 class GraphSampler(torch.utils.data.Dataset):
     ''' Sample graphs and nodes in graph
     '''
-    def __init__(self, graphs, features='default',
-                               no_node_labels=False,
-                               no_node_attr=False,
-                               normalize=False, max_num_nodes=0):
+    def __init__(self, graphs, subgraphs,
+            features='default', no_node_labels=False,
+            no_node_attr=False, normalize=False, max_num_nodes=0):
         # self.adj_all = []
         # self.len_all = []
         # self.feature_all = []
         # self.label_all = []
         # self.assign_feat_all = []
+        self.num_graphs = len(graphs)
+        self.subgraph_label = [[] for _  in range(len(graphs))]
+        for subgraphidx, subgraph in enumerate(subgraphs):
+            self.subgraph_label[subgraph.graph['label']].append(self.num_graphs + subgraphidx)
+        for i in range(len(graphs)):
+            self.subgraph_label[i].append(i)
+
+        self.local = (subgraphs is not None)
         self.G_list = graphs
+        if self.local:
+            self.G_list += subgraphs
         self.features = features
         self.no_node_labels = no_node_labels
         self.no_node_attr = no_node_attr
@@ -92,7 +101,7 @@ class GraphSampler(torch.utils.data.Dataset):
         print('node attribute dim', self.feat_dim)
         print('node label dim', self.node_label_dim)
 
-        if self.max_num_nodes < 2000:
+        if self.max_num_nodes < 5000:
             self.load_on_train = False
             self.all_data = []
             print('loading graph data ...')
@@ -228,11 +237,19 @@ class GraphSampler(torch.utils.data.Dataset):
             ret_num_nodes.append(data['num_nodes'])
             # ret_assign_feats.append(data['assign_feats'])
 
-            data = self.get_graph_data(idx, processed=not self.load_on_train, permutate=permutate)
-            ret_adj2.append(data['adj'])
-            ret_feats2.append(data['feats'])
-            ret_num_nodes2.append(data['num_nodes'])
-            # ret_assign_feats2.append(data['assign_feats'])
+            if self.local:
+                subgraphidx = np.random.choice(self.subgraph_label[idx])
+                idx = self.num_graphs + subgraphidx
+                data = self.get_graph_data(idx, processed=not self.load_on_train, permutate=permutate)
+                ret_adj2.append(data['adj'])
+                ret_feats2.append(data['feats'])
+                ret_num_nodes2.append(data['num_nodes'])
+            else:
+                data = self.get_graph_data(idx, processed=not self.load_on_train, permutate=permutate)
+                ret_adj2.append(data['adj'])
+                ret_feats2.append(data['feats'])
+                ret_num_nodes2.append(data['num_nodes'])
+                # ret_assign_feats2.append(data['assign_feats'])
 
         
         return {'adj': torch.from_numpy(np.stack(ret_adj)),

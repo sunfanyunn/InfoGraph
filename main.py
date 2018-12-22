@@ -24,6 +24,8 @@ def arg_parse():
             help='Directory where benchmark is located')
     parser.add_argument('--DS', dest='DS',
             help='Dataset')
+    parser.add_argument('--local', dest='local', action='store_const', 
+            const=True, default=False)
     parser.add_argument('--logdir', dest='logdir',
             help='Tensorboard log directory')
     parser.add_argument('--cuda', dest='cuda',

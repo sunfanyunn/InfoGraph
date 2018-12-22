@@ -20,7 +20,12 @@ class Trainer:
         print('reading graphfile...')
         graphs = read_graphfile(args.datadir, args.DS, args.max_num_nodes)
         print('number of graphs', len(graphs))
-        self.dataset_sampler = GraphSampler(graphs,
+        if args.local:
+            subgraphs = read_graphfile(args.datadir, args.DS + '-subgraph', args.max_num_nodes)
+            print('number of subgraphs', len(subgraphs))
+        else:
+            subgraphs = None
+        self.dataset_sampler = GraphSampler(graphs, subgraphs,
                                             features=args.feature_type,
                                             no_node_labels=args.no_node_labels,
                                             no_node_attr=args.no_node_attr,
