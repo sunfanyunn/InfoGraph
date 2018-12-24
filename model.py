@@ -22,7 +22,7 @@ class GraphSkipgram(nn.Module):
     num_layers = args.num_gc_layers
     encoder_embedding_dim = self.embedding_dim + (num_layers-1)*hidden_dim
 
-    initrange = -1.5 / self.embedding_dim
+    # initrange = -1.5 / self.embedding_dim
 
     if args.method == 'base':
         self.u_encoder = GcnEncoderGraph(input_dim=input_dim, 
@@ -92,6 +92,11 @@ class GraphSkipgram(nn.Module):
     # self.v_embeddings.weight.data.uniform_(-initrange, initrange)
     self.v_embeddings.weight.data.uniform_(-0, 0)
     # self.fc2.weight.data.uniform_(-0,0)
+    # for m in self.modules():
+        # if isinstance(m, nn.Linear):
+            # torch.nn.init.xavier_uniform_(m.weight.data)
+            # if m.bias is not None:
+                # m.bias.data.fill_(0.0)
 
   def enc(self, data, u=True):
 
@@ -127,7 +132,6 @@ class GraphSkipgram(nn.Module):
 
     neg_embed_v = self.v_embeddings(self.enc(v_neg, u=False))
     neg_embed_v = neg_embed_v.view(batch_size, neg_sampling_size, self.embedding_dim) 
-
     # print(embed_u.detach().cpu().numpy())
     # print(embed_v.detach().cpu().numpy()) 
     loss_type = self.loss_type
@@ -156,6 +160,7 @@ class GraphSkipgram(nn.Module):
 
         # return loss.sum()/batch_size
         return loss/batch_size
+
 
   def get_embeddings(self, total_num, batch_size=32, permutate_sz=1):
       res = []
