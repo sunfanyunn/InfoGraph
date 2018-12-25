@@ -38,6 +38,7 @@ class LogReg(nn.Module):
         return ret
 
 def draw_plot(datadir, DS, embeddings, fname, max_nodes=None):
+    return
     graphs = read_graphfile(datadir, DS, max_nodes=max_nodes)
     labels = [graph.graph['label'] for graph in graphs]
 

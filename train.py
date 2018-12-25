@@ -7,6 +7,8 @@ import numpy as np
 import gc
 from evaluate_embedding import evaluate_embedding, draw_plot
 
+#os.environ["CUDA_VISIBLE_DEVICES"]="1, 2"
+
 class Trainer:
     def __init__(self, args):
         self.embedding_dim = args.output_dim
@@ -35,10 +37,11 @@ class Trainer:
 
         self.model = GraphSkipgram(args, self.dataset_sampler)
         self.num_graphs = len(self.dataset_sampler)
-        assert self.num_graphs == len(graphs)
+        # assert self.num_graphs == len(graphs)
         # print('nubmer of graphs', self.num_graphs)
 
     def train(self):
+        # torch.cuda.device(1)
         if torch.cuda.is_available():
             self.model.cuda()
         optimizer = optim.SGD(self.model.parameters(),lr=self.lr)
@@ -86,7 +89,8 @@ class Trainer:
                 # print(pos_u['assign_feats'].shape)
                 # input()
                 # pos_v = self.dataset_sampler.get_batch(pos_v)
-                neg_v, _ = self.dataset_sampler.get_batch(neg_v.flatten())
+                _ ,neg_v = self.dataset_sampler.get_batch(neg_v.flatten())
+                # neg_v, _ = self.dataset_sampler.get_batch(neg_v.flatten())
 
                 optimizer.zero_grad()
                 loss = self.model(pos_u, pos_v, neg_v, self.batch_size)
@@ -102,13 +106,12 @@ class Trainer:
                     print('epoch %d, batch=%2d : loss=%4.3f\n' %(epoch, batch_num, loss.data[0]),end="")
 
                 batch_num = batch_num + 1 
-                # print(batch_num)
                 # torch.cuda.empty_cache()
                 # gc.collect()
 
             if epoch%self.args.log_interval == 0:
                 print('getting embeddings ...')
-                embeddings = self.model.get_embeddings(total_num=len(self.dataset_sampler), batch_size=self.batch_size, permutate_sz=1)
+                embeddings = self.model.get_embeddings(total_num=self.dataset_sampler.num_graphs, batch_size=self.batch_size, permutate_sz=1)
                 history[epoch] = (evaluate_embedding(self.args.datadir, self.args.DS, embeddings, self.args.max_num_nodes), np.mean(losses))
                 # history[batch_num] = (evaluate_embedding(self.args.datadir, self.args.DS, embeddings, self.args.max_num_nodes), np.mean(losses))
                 print(history)
@@ -136,8 +139,10 @@ class Trainer:
             print('mean', np.mean(accuracies))
             print('=================')
             print("Optimization Finished!")
-            f.write('{},{},{},{},{},{},{},{}\n'.format(self.args.DS,
+            f.write('{},{},{},{},{},{},{},{},{},{}\n'.format(self.args.DS,
                                                  'nor' if self.args.no_node_attr else 'all',
+                                                 self.args.lr,
+                                                 'local' if self.args.local else 'global',
                                                  self.args.num_gc_layers,
                                                  self.args.loss_type,
                                                  history[-1][0],

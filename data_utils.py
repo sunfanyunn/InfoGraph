@@ -44,13 +44,14 @@ class GraphSampler(torch.utils.data.Dataset):
         # self.label_all = []
         # self.assign_feat_all = []
         self.num_graphs = len(graphs)
-        self.subgraph_label = [[] for _  in range(len(graphs))]
-        for subgraphidx, subgraph in enumerate(subgraphs):
-            self.subgraph_label[subgraph.graph['label']].append(self.num_graphs + subgraphidx)
-        for i in range(len(graphs)):
-            self.subgraph_label[i].append(i)
-
         self.local = (subgraphs is not None)
+        if self.local:
+            self.subgraph_label = [[] for _  in range(len(graphs))]
+            for subgraphidx, subgraph in enumerate(subgraphs):
+                self.subgraph_label[subgraph.graph['label']].append(self.num_graphs + subgraphidx)
+            for i in range(len(graphs)):
+                self.subgraph_label[i].append(i)
+
         self.G_list = graphs
         if self.local:
             self.G_list += subgraphs
@@ -61,7 +62,7 @@ class GraphSampler(torch.utils.data.Dataset):
         self.max_num_nodes = max_num_nodes
 
         if max_num_nodes == 0:
-            self.max_num_nodes = max([G.number_of_nodes() for G in graphs])
+            self.max_num_nodes = max([G.number_of_nodes() for G in self.G_list])
         else:
             self.max_num_nodes = max_num_nodes
 
@@ -86,7 +87,7 @@ class GraphSampler(torch.utils.data.Dataset):
 
             node_labels = LabelEncoder().fit_transform(tmp)
             cnt = 0
-            for idx, G in enumerate(graphs):
+            for idx, G in enumerate(self.G_list):
                 for u in G.nodes():
                     G.node[u]['label'] = node_labels[cnt]
                     cnt+=1
@@ -105,7 +106,7 @@ class GraphSampler(torch.utils.data.Dataset):
             self.load_on_train = False
             self.all_data = []
             print('loading graph data ...')
-            for i in tqdm(range(len(graphs))):
+            for i in tqdm(range(len(self.G_list))):
                 self.all_data.append(self.get_graph_data(i))
         else:
             self.load_on_train = True
@@ -237,19 +238,14 @@ class GraphSampler(torch.utils.data.Dataset):
             ret_num_nodes.append(data['num_nodes'])
             # ret_assign_feats.append(data['assign_feats'])
 
-            if self.local:
-                subgraphidx = np.random.choice(self.subgraph_label[idx])
-                idx = self.num_graphs + subgraphidx
-                data = self.get_graph_data(idx, processed=not self.load_on_train, permutate=permutate)
-                ret_adj2.append(data['adj'])
-                ret_feats2.append(data['feats'])
-                ret_num_nodes2.append(data['num_nodes'])
-            else:
-                data = self.get_graph_data(idx, processed=not self.load_on_train, permutate=permutate)
-                ret_adj2.append(data['adj'])
-                ret_feats2.append(data['feats'])
-                ret_num_nodes2.append(data['num_nodes'])
-                # ret_assign_feats2.append(data['assign_feats'])
+            if self.local: 
+                idx = np.random.choice(self.subgraph_label[idx])
+
+            data = self.get_graph_data(idx, processed=not self.load_on_train, permutate=permutate)
+            ret_adj2.append(data['adj'])
+            ret_feats2.append(data['feats'])
+            ret_num_nodes2.append(data['num_nodes'])
+            # ret_assign_feats2.append(data['assign_feats'])
 
         
         return {'adj': torch.from_numpy(np.stack(ret_adj)),
@@ -261,7 +257,7 @@ class GraphSampler(torch.utils.data.Dataset):
                 # 'assign_feats': torch.from_numpy(np.stack(ret_assign_feats2))
 
     def __len__(self):
-        return len(self.G_list)
+        return self.num_graphs
 
     # def __getitem__(self, idx):
         # return self.get_graph_data(idx)
@@ -394,7 +390,7 @@ def read_graphfile(datadir, dataname, max_nodes=None):
         graphs[idx] = G
 
     # either max_nodes is 0 or None or 
-    # return [g for g in graphs if not max_nodes or g.number_of_nodes() <= max_nodes]
+    return [g for g in graphs if g.number_of_nodes() <= 2000]
     return graphs
 
 def remove_singleton(graph):
