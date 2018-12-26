@@ -106,7 +106,7 @@ def arg_parse():
                         loss_type='bce',
                         method='base',
                         name_suffix='',
-                        neg_sampling_num=20,
+                        neg_sampling_num=1,
                         num_pool=1
                        )
     return parser.parse_args()

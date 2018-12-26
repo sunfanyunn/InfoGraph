@@ -23,7 +23,7 @@ class Trainer:
         graphs = read_graphfile(args.datadir, args.DS, args.max_num_nodes)
         print('number of graphs', len(graphs))
         if args.local:
-            subgraphs = read_graphfile(args.datadir, args.DS + '-subgraph', args.max_num_nodes)
+            subgraphs = read_graphfile(args.datadir, args.DS + '-subgraphs', args.max_num_nodes)
             print('number of subgraphs', len(subgraphs))
         else:
             subgraphs = None
@@ -84,13 +84,7 @@ class Trainer:
                 neg_v = np.array(neg_v)
 
                 pos_u, pos_v = self.dataset_sampler.get_batch(pos_u, self.permutate)
-                # print(pos_u['adj'].shape)
-                # print(pos_u['feats'].shape)
-                # print(pos_u['assign_feats'].shape)
-                # input()
-                # pos_v = self.dataset_sampler.get_batch(pos_v)
                 _ ,neg_v = self.dataset_sampler.get_batch(neg_v.flatten())
-                # neg_v, _ = self.dataset_sampler.get_batch(neg_v.flatten())
 
                 optimizer.zero_grad()
                 loss = self.model(pos_u, pos_v, neg_v, self.batch_size)
@@ -101,9 +95,9 @@ class Trainer:
                 loss.backward()
                 optimizer.step()
 
-                losses.append(loss.data[0])
+                losses.append(loss.item())
                 if batch_num%10 == 0:
-                    print('epoch %d, batch=%2d : loss=%4.3f\n' %(epoch, batch_num, loss.data[0]),end="")
+                    print('epoch %d, batch=%2d : loss=%4.3f\n' %(epoch, batch_num, loss.item()),end="")
 
                 batch_num = batch_num + 1 
                 # torch.cuda.empty_cache()

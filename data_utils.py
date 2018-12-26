@@ -55,6 +55,7 @@ class GraphSampler(torch.utils.data.Dataset):
         self.G_list = graphs
         if self.local:
             self.G_list += subgraphs
+            assert len(graphs) > self.num_graphs
         self.features = features
         self.no_node_labels = no_node_labels
         self.no_node_attr = no_node_attr

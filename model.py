@@ -75,10 +75,10 @@ class GraphSkipgram(nn.Module):
     # self.v_embeddings  = nn.Linear(self.encoder_embedding_dim + input_dim, embedding_dim) 
     self.v_embeddings  = nn.Linear(encoder_embedding_dim, self.embedding_dim) 
 
-    # self.fc1 = nn.Linear(self.embedding_dim*2, hidden_dim)
     # self.fc2 = nn.Linear(hidden_dim, 1)
 
-    self.fc2 = nn.Linear(self.embedding_dim*2, 1)
+    self.fc1 = nn.Linear(self.embedding_dim*2, 128)
+    self.fc2 = nn.Linear(128, 1)
 
     self.init_emb()
     # with open('../esc/gitgraph-stars-names.json', 'r') as f:
@@ -92,11 +92,11 @@ class GraphSkipgram(nn.Module):
     # self.v_embeddings.weight.data.uniform_(-initrange, initrange)
     self.v_embeddings.weight.data.uniform_(-0, 0)
     # self.fc2.weight.data.uniform_(-0,0)
-    # for m in self.modules():
-        # if isinstance(m, nn.Linear):
-            # torch.nn.init.xavier_uniform_(m.weight.data)
-            # if m.bias is not None:
-                # m.bias.data.fill_(0.0)
+    for m in self.modules():
+        if isinstance(m, nn.Linear):
+            torch.nn.init.xavier_uniform_(m.weight.data)
+            if m.bias is not None:
+                m.bias.data.fill_(0.0)
 
   def enc(self, data, u=True):
 
@@ -122,43 +122,25 @@ class GraphSkipgram(nn.Module):
     neg_sampling_size = self.neg_sampling_size
 
     embed_u = self.u_embeddings(self.enc(u_pos, u=True))
-    # embed_u = torch.nn.Sigmoid()(embed_u)
-
-    # std_z = torch.from_numpy(np.random.normal(0, 1, size=embed_u.size())).float().cuda()
-    # embed_u = embed_u +  .5 * Variable(std_z, requires_grad=False)
-
     embed_v = self.v_embeddings(self.enc(v_pos, u=False))
-    # embed_v = torch.nn.Sigmoid()(embed_v)
-
     neg_embed_v = self.v_embeddings(self.enc(v_neg, u=False))
     neg_embed_v = neg_embed_v.view(batch_size, neg_sampling_size, self.embedding_dim) 
-    # print(embed_u.detach().cpu().numpy())
-    # print(embed_v.detach().cpu().numpy()) 
+
     loss_type = self.loss_type
     if loss_type == 'bce':
 
-        loss_fn = nn.BCELoss()
+        loss_fn = nn.BCEWithLogitsLoss()
         X = torch.cat((embed_u, embed_v), 1)
-        # pred = F.sigmoid(self.fc2(F.relu(self.fc1(X))))
-        pred = F.sigmoid(self.fc2(X))
-        # print(pred)
-        # input()
-        # print(pred.shape)
-        pos_loss = loss_fn(pred, torch.ones(pred.shape).cuda())
+        logits = self.fc2(F.relu(self.fc1(X)))
+        pos_loss = loss_fn(logits, torch.ones(logits.shape).cuda())
 
         embed_u = torch.cat([embed_u.view(batch_size, 1, self.embedding_dim) for _ in range(neg_sampling_size)], 1)
         X = torch.cat((embed_u, neg_embed_v), 2)
-        # pred = F.sigmoid(self.fc2(F.relu(self.fc1(X))))
-        pred = F.sigmoid(self.fc2(X))
-        neg_loss = loss_fn(pred, torch.zeros(pred.shape).cuda())
-        # sum_log_sampled = (sum_log_sampled - torch.zeros(sum_log_sampled.shape).cuda()) ** 2
+        logits = self.fc2(F.relu(self.fc1(X)))
+        neg_loss = loss_fn(logits, torch.zeros(logits.shape).cuda())
 
         loss = neg_sampling_size*pos_loss + neg_loss
-        # print(pos_loss)
-        # print(neg_loss)
-        # loss = log_target.sum() + sum_log_sampled.sum()
 
-        # return loss.sum()/batch_size
         return loss/batch_size
 
 
