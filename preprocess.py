@@ -93,7 +93,7 @@ def make_subgraph_dataset(datadir, DS, method='louvain'):
                 graph_indicator_writer.write('{}\n'.format(subgraphid))
                 node_labels_writer.write('{}\n'.format(subgraph.node[v]['label']))
                 if feat:
-                    node_attributes_writer.write(' '.join(map(str, list(subgraph.node[v]['feat']))) + '\n')
+                    node_attributes_writer.write(', '.join(map(str, list(subgraph.node[v]['feat']))) + '\n')
 
             # graph_labels_writer.write('{}\n'.format(label2id[corpus.labels[graphid-1]]))
             graph_labels_writer.write('{}\n'.format(graphid))
