@@ -3,6 +3,7 @@ import networkx as nx
 import numpy as np
 from tqdm import tqdm
 from glob import glob
+import re
 
 def read_graphfile(datadir, dataname, max_nodes=None):
     ''' Read data from https://ls11-www.cs.tu-dortmund.de/staff/morris/graphkerneldatasets
@@ -120,13 +121,3 @@ def read_graphfile(datadir, dataname, max_nodes=None):
     # either max_nodes is 0 or None or 
     # return [g for g in graphs if g.number_of_nodes() <= 2000]
     return graphs
-
-def remove_singleton(graph):
-    del_list = list()
-
-    for v in graph.vertices():
-        if (v.in_degree() + v.out_degree()) == 0:
-            del_list.append(v)
-    for v in reversed(sorted(del_list)):
-        graph.remove_vertex(v)
-    return graph
