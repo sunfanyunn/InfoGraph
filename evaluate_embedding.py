@@ -15,27 +15,27 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 
-import torch
-import torch.nn as nn
-import torch.nn.functional as F
+# import torch
+# import torch.nn as nn
+# import torch.nn.functional as F
 
-class LogReg(nn.Module):
-    def __init__(self, ft_in, nb_classes):
-        super(LogReg, self).__init__()
-        self.fc = nn.Linear(ft_in, nb_classes)
+# class LogReg(nn.Module):
+    # def __init__(self, ft_in, nb_classes):
+        # super(LogReg, self).__init__()
+        # self.fc = nn.Linear(ft_in, nb_classes)
 
-        for m in self.modules():
-            self.weights_init(m)
+        # for m in self.modules():
+            # self.weights_init(m)
 
-    def weights_init(self, m):
-        if isinstance(m, nn.Linear):
-            torch.nn.init.xavier_uniform_(m.weight.data)
-            if m.bias is not None:
-                m.bias.data.fill_(0.0)
+    # def weights_init(self, m):
+        # if isinstance(m, nn.Linear):
+            # torch.nn.init.xavier_uniform_(m.weight.data)
+            # if m.bias is not None:
+                # m.bias.data.fill_(0.0)
 
-    def forward(self, seq):
-        ret = self.fc(seq)
-        return ret
+    # def forward(self, seq):
+        # ret = self.fc(seq)
+        # return ret
 
 def draw_plot(datadir, DS, embeddings, fname, max_nodes=None):
     return
@@ -73,7 +73,7 @@ def evaluate_embedding(datadir, DS, embeddings, max_nodes=None):
     it = 0
 
     print('Starting cross-validation')
-
+    """
     accuracies = []
     for train_index, test_index in kf.split(x, y):
         it += 1
@@ -109,7 +109,7 @@ def evaluate_embedding(datadir, DS, embeddings, max_nodes=None):
         classifier.fit(x_train, y_train)
         accuracies.append(accuracy_score(y_test, classifier.predict(x_test)))
     print('LinearSvc', np.mean(accuracies))
-
+    """
     accuracies = []
     for train_index, test_index in kf.split(x, y):
         it += 1

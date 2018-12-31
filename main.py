@@ -4,8 +4,7 @@ import numpy as np
 
 import math
 import random
-
-
+import os
 import torch
 import torch.nn as nn
 from torch.autograd import Variable
@@ -26,6 +25,8 @@ def arg_parse():
             help='Dataset')
     parser.add_argument('--local', dest='local', action='store_const', 
             const=True, default=False)
+    parser.add_argument('--local-ds', dest='local_ds', type=str)
+
     parser.add_argument('--logdir', dest='logdir',
             help='Tensorboard log directory')
     parser.add_argument('--cuda', dest='cuda',
@@ -106,13 +107,15 @@ def arg_parse():
                         loss_type='bce',
                         method='base',
                         name_suffix='',
-                        neg_sampling_num=1,
+                        neg_sampling_num=20,
                         num_pool=1
                        )
     return parser.parse_args()
 
 def main():
     args = arg_parse()
+    os.environ['CUDA_VISIBLE_DEVICES'] = args.cuda
+    print('CUDA', args.cuda)
     # preprocess(args.datadir, args.DS, args.max_num_nodes)
     trainer = Trainer(args)
     # trainer.prepare_data()

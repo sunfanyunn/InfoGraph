@@ -1,5 +1,6 @@
 from model import GraphSkipgram
-from data_utils import read_graphfile, GraphSampler
+from data_utils import read_graphfile
+from graph_sampler import GraphSampler
 import torch
 from torch import optim
 import os
@@ -23,7 +24,8 @@ class Trainer:
         graphs = read_graphfile(args.datadir, args.DS, args.max_num_nodes)
         print('number of graphs', len(graphs))
         if args.local:
-            subgraphs = read_graphfile(args.datadir, args.DS + '-subgraphs', args.max_num_nodes)
+            subgraphs = read_graphfile(args.datadir, args.local_ds, args.max_num_nodes)
+
             print('number of subgraphs', len(subgraphs))
         else:
             subgraphs = None
@@ -68,18 +70,18 @@ class Trainer:
             losses = []
             cur = 0
             while cur < self.num_graphs:
-                pos_u = []
-                for i in range(self.batch_size):
-                    pos_u.append((cur+i)%self.num_graphs)
-                    cur += 1
+
+                pos_u = [(cur+j)%self.num_graphs for j in range(self.batch_size)]
+                cur += self.batch_size
 
                 neg_v = []
-                for i in range(len(pos_u)):
+                for i in range(self.batch_size):
                     a = np.arange(self.num_graphs)
                     np.random.shuffle(a)
                     a = np.setdiff1d(a, pos_u[i])
                     neg_v.append(a[:self.neg_sampling_num])
 
+                assert len(pos_u) == len(neg_v)
                 pos_u = np.array(pos_u)
                 neg_v = np.array(neg_v)
 
@@ -96,8 +98,7 @@ class Trainer:
                 optimizer.step()
 
                 losses.append(loss.item())
-                if batch_num%10 == 0:
-                    print('epoch %d, batch=%2d : loss=%4.3f\n' %(epoch, batch_num, loss.item()),end="")
+                print('epoch %d, batch=%2d : loss=%4.3f\n' %(epoch, batch_num, loss.item()),end="")
 
                 batch_num = batch_num + 1 
                 # torch.cuda.empty_cache()
@@ -133,14 +134,49 @@ class Trainer:
             print('mean', np.mean(accuracies))
             print('=================')
             print("Optimization Finished!")
-            f.write('{},{},{},{},{},{},{},{},{},{}\n'.format(self.args.DS,
-                                                 'nor' if self.args.no_node_attr else 'all',
-                                                 self.args.lr,
-                                                 'local' if self.args.local else 'global',
-                                                 self.args.num_gc_layers,
-                                                 self.args.loss_type,
-                                                 history[-1][0],
-                                                 history[self.epoch_num][0],
-                                                 np.max(accuracies),
-                                                 np.mean(accuracies)))
-
+            if self.epoch_num == 100:
+                f.write('{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}\n'.format(
+                     self.args.DS,
+                     'nor' if self.args.no_node_attr else 'all',
+                     self.args.neg_sampling_num,
+                     self.args.lr,
+                     self.args.local_ds if self.args.local else 'global',
+                     self.args.num_gc_layers,
+                     self.args.loss_type,
+                     history[-1][0],
+                     history[0][0],
+                     history[10][0],
+                     history[20][0],
+                     history[30][0],
+                     history[40][0],
+                     history[50][0],
+                     history[60][0],
+                     history[70][0],
+                     history[80][0],
+                     history[90][0],
+                     history[self.epoch_num][0],
+                     np.max(accuracies),
+                     np.mean(accuracies)))
+            if self.epoch_num == 10:
+                f.write('{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}\n'.format(
+                     self.args.DS,
+                     'nor' if self.args.no_node_attr else 'all',
+                     self.args.neg_sampling_num,
+                     self.args.lr,
+                     self.args.local_ds if self.args.local else 'global',
+                     self.args.num_gc_layers,
+                     self.args.loss_type,
+                     history[-1][0],
+                     history[0][0],
+                     history[1][0],
+                     history[2][0],
+                     history[3][0],
+                     history[4][0],
+                     history[5][0],
+                     history[6][0],
+                     history[7][0],
+                     history[8][0],
+                     history[9][0],
+                     history[self.epoch_num][0],
+                     np.max(accuracies),
+                     np.mean(accuracies)))

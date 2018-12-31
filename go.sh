@@ -5,7 +5,7 @@ CUDA=$2
 
 for i in 1 2 3 4 5 6 7 8 9 10
 do
-  for gc in 2 4 8
+  for gc in 16 8 4
   do 
     python3 main.py --DS $DS  --output-dim 512 \
       --log-interval 1 --epochs 10 \
