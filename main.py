@@ -10,10 +10,10 @@ import torch.nn as nn
 from torch.autograd import Variable
 import torch.optim as optim
 import torch.nn.functional as Func
-from torch.optim.lr_scheduler import StepLR
 import time
 
 from train import Trainer
+from torch.optim.lr_scheduler import StepLR
 import argparse
 
 def arg_parse():
@@ -25,7 +25,11 @@ def arg_parse():
             help='Dataset')
     parser.add_argument('--local', dest='local', action='store_const', 
             const=True, default=False)
-    parser.add_argument('--local-ds', dest='local_ds', type=str)
+    parser.add_argument('--glob', dest='glob', action='store_const', 
+            const=True, default=False)
+    parser.add_argument('--prior', dest='prior', action='store_const', 
+            const=True, default=False)
+    # parser.add_argument('--local-ds', dest='local_ds', type=str)
 
     parser.add_argument('--logdir', dest='logdir',
             help='Tensorboard log directory')
@@ -40,6 +44,8 @@ def arg_parse():
             # help='load graph data on training',
 
     # learning related arguments
+    parser.add_argument('--num-workers', dest='num_workers', type=int,
+            help='')
     parser.add_argument('--lr', dest='lr', type=float,
             help='Learning rate.')
     parser.add_argument('--clip', dest='clip', type=float,
@@ -55,6 +61,9 @@ def arg_parse():
             help='Whether to permutate graph while training')
 
     # model related arguments
+    parser.add_argument('--concat', dest='concat', action='store_const',
+            const=True, default=False,
+            help='whether to concat gc or not')
     parser.add_argument('--no-node-labels', dest='no_node_labels', action='store_const',
             const=True, default=False,
             help='whether to not use node labels or not')
@@ -67,7 +76,7 @@ def arg_parse():
             help='Feature used for encoder. Can be: id, deg')
     parser.add_argument('--hidden-dim', dest='hidden_dim', type=int,
             help='Hidden dimension')
-    parser.add_argument('--output-dim', dest='output_dim', type=int,
+    parser.add_argument('--embedding-dim', dest='embedding_dim', type=int,
             help='Output dimension')
     # parser.add_argument('--num-classes', dest='num_classes', type=int,
             # help='Number of label classes')
@@ -98,10 +107,10 @@ def arg_parse():
                         # train_ratio=0.8,
                         # test_ratio=0.1,
                         log_interval=100,
-                        num_workers=8,
+                        num_workers=0,
                         # input_dim=18,
                         hidden_dim=50,
-                        output_dim=100,
+                        embedding_dim=100,
                         num_gc_layers=3,
                         dropout=0.0,
                         loss_type='bce',

@@ -1,10 +1,10 @@
-from data_utils import read_graphfile
+#from data_utils import read_graphfile
 import numpy as np
 import pandas as pd
 import os
 
 from sklearn.model_selection import cross_val_score
-from sklearn.model_selection import GridSearchCV, StratifiedKFold
+from sklearn.model_selection import GridSearchCV, KFold, StratifiedKFold
 from sklearn.svm import SVC, LinearSVC
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
@@ -55,34 +55,32 @@ def draw_plot(datadir, DS, embeddings, fname, max_nodes=None):
     plt.legend()
     plt.savefig(fname)
 
-def evaluate_embedding(datadir, DS, embeddings, max_nodes=None):
+def evaluate_embedding(datadir, DS, embeddings, labels):
     """
     context_file = open(os.path.join(datadir, DS, 'context'), 'r').readlines()
     embeddings = [np.sum([embeddings[int(idx),:] for idx in context_file[i].strip().split()], axis=0) for i in range(len(context_file))]
     # print(labels)
     """
-    graphs = read_graphfile(datadir, DS, max_nodes=max_nodes)
-    labels = [graph.graph['label'] for graph in graphs]
 
     labels = preprocessing.LabelEncoder().fit_transform(labels)
     x, y = np.array(embeddings), np.array(labels)
 
-    kf = StratifiedKFold(n_splits=10, random_state=None)
-    kf.shuffle=True
-    accs=[];
-    it = 0
+    ridx = np.arange(y.shape[0])
+    np.random.shuffle(ridx)
+    x, y = x[ridx], y[ridx]
+    print('embeddings.shape', x.shape)
+    print('labels.shape', y.shape)
 
-    print('Starting cross-validation')
+    kf = StratifiedKFold(n_splits=10, shuffle=True, random_state=None)
     """
+    print('Starting cross-validation')
     accuracies = []
     for train_index, test_index in kf.split(x, y):
-        it += 1
-        best_acc1 = 0
 
         x_train, x_test = x[train_index], x[test_index]
         y_train, y_test = y[train_index], y[test_index]
         # x_train, x_val, y_train, y_val = train_test_split(x_train, y_train, test_size=0.1)
-        search=True
+        search=False
         if search:
             params = {'C':[0.001, 0.01,0.1,1,10,100,1000]}
             classifier = GridSearchCV(SVC(), params, cv=10, scoring='accuracy', verbose=0)
@@ -90,30 +88,28 @@ def evaluate_embedding(datadir, DS, embeddings, max_nodes=None):
             classifier = SVC(C=10)
         classifier.fit(x_train, y_train)
         accuracies.append(accuracy_score(y_test, classifier.predict(x_test)))
+    print(accuracies)
     print('svc', np.mean(accuracies))
 
     accuracies = []
     for train_index, test_index in kf.split(x, y):
-        it += 1
-        best_acc1 = 0
 
         x_train, x_test = x[train_index], x[test_index]
         y_train, y_test = y[train_index], y[test_index]
         # x_train, x_val, y_train, y_val = train_test_split(x_train, y_train, test_size=0.1)
-        search=True
+        search=False
         if search:
-            params = {'C':[0.001, 0.01,0.1,1,10,100,1000]}
             classifier = GridSearchCV(LinearSVC(), params, cv=10, scoring='accuracy', verbose=0)
+            params = {'C':[0.001, 0.01,0.1,1,10,100,1000]}
         else:
             classifier = SVC(C=10)
         classifier.fit(x_train, y_train)
         accuracies.append(accuracy_score(y_test, classifier.predict(x_test)))
+    print(accuracies)
     print('LinearSvc', np.mean(accuracies))
     """
     accuracies = []
     for train_index, test_index in kf.split(x, y):
-        it += 1
-        best_acc1 = 0
 
         x_train, x_test = x[train_index], x[test_index]
         y_train, y_test = y[train_index], y[test_index]
@@ -121,11 +117,13 @@ def evaluate_embedding(datadir, DS, embeddings, max_nodes=None):
         search=True
         if search:
             params = {'C':[0.001, 0.01,0.1,1,10,100,1000]}
-            classifier = GridSearchCV(LogisticRegression(), params, cv=10, scoring='accuracy', verbose=0)
+            classifier = GridSearchCV(LogisticRegression(), params, cv=5, scoring='accuracy', verbose=0)
         else:
-            classifier = SVC(C=10)
+            classifier = LogisticRegression(C=10)
         classifier.fit(x_train, y_train)
+        # print(y_test, classifier.predict(x_test))
         accuracies.append(accuracy_score(y_test, classifier.predict(x_test)))
+        # print(accuracies)
     print('logistic', np.mean(accuracies))
     return np.mean(accuracies)
 

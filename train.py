@@ -1,4 +1,4 @@
-from model import GraphSkipgram
+from model import GcnInfomax
 from data_utils import read_graphfile
 from graph_sampler import GraphSampler
 import torch
@@ -12,7 +12,6 @@ from evaluate_embedding import evaluate_embedding, draw_plot
 
 class Trainer:
     def __init__(self, args):
-        self.embedding_dim = args.output_dim
         self.batch_size = args.batch_size
         self.epoch_num = args.num_epochs
         self.neg_sampling_num = args.neg_sampling_num
@@ -23,22 +22,29 @@ class Trainer:
         print('reading graphfile...')
         graphs = read_graphfile(args.datadir, args.DS, args.max_num_nodes)
         print('number of graphs', len(graphs))
-        if args.local:
-            subgraphs = read_graphfile(args.datadir, args.local_ds, args.max_num_nodes)
+        # if args.local:
+            # subgraphs = read_graphfile(args.datadir, args.local_ds, args.max_num_nodes)
 
-            print('number of subgraphs', len(subgraphs))
-        else:
-            subgraphs = None
-        self.dataset_sampler = GraphSampler(graphs, subgraphs,
-                                            features=args.feature_type,
-                                            no_node_labels=args.no_node_labels,
-                                            no_node_attr=args.no_node_attr,
-                                            max_num_nodes=args.max_num_nodes)
+            # print('number of subgraphs', len(subgraphs))
+        # else:
+            # subgraphs = None
+        dataset_sampler = GraphSampler(graphs, 
+                                        normalize=False,
+                                        features=args.feature_type,
+                                        no_node_labels=args.no_node_labels,
+                                        no_node_attr=args.no_node_attr,
+                                        max_num_nodes=args.max_num_nodes)
 
-        args.input_dim = self.dataset_sampler.input_dim
+        args.max_num_nodes = dataset_sampler.max_num_nodes
+        self.dataloader = torch.utils.data.DataLoader(dataset_sampler,
+                                                      batch_size=args.batch_size,
+                                                      shuffle=True,
+                                                      num_workers=args.num_workers)
 
-        self.model = GraphSkipgram(args, self.dataset_sampler)
-        self.num_graphs = len(self.dataset_sampler)
+        args.input_dim = dataset_sampler.input_dim
+
+        self.model = GcnInfomax(args)
+        self.num_graphs = len(self.dataloader)
         # assert self.num_graphs == len(graphs)
         # print('nubmer of graphs', self.num_graphs)
 
@@ -53,8 +59,8 @@ class Trainer:
         history = {}
 
         print('getting embeddings ...')
-        embeddings = self.model.get_embeddings(total_num=len(self.dataset_sampler), batch_size=self.batch_size, permutate_sz=1)
-        history[-1] = (evaluate_embedding(self.args.datadir, self.args.DS, embeddings, self.args.max_num_nodes), np.nan)
+        embeddings, labels = self.model.get_embeddings(dataloader=self.dataloader)
+        history[-1] = (evaluate_embedding(self.args.datadir, self.args.DS, embeddings, labels), np.nan)
         draw_plot(self.args.datadir, self.args.DS, embeddings, 'fig/{}_-1.png'.format(self.args.DS))
         print(history)
         accuracies = []
@@ -69,27 +75,24 @@ class Trainer:
 
             losses = []
             cur = 0
-            while cur < self.num_graphs:
+            for batch_idx, data in enumerate(self.dataloader):
 
-                pos_u = [(cur+j)%self.num_graphs for j in range(self.batch_size)]
-                cur += self.batch_size
+                # neg_v = []
+                # for i in range(self.batch_size):
+                    # a = np.arange(self.num_graphs)
+                    # np.random.shuffle(a)
+                    # a = np.setdiff1d(a, pos_u[i])
+                    # neg_v.append(a[:self.neg_sampling_num])
 
-                neg_v = []
-                for i in range(self.batch_size):
-                    a = np.arange(self.num_graphs)
-                    np.random.shuffle(a)
-                    a = np.setdiff1d(a, pos_u[i])
-                    neg_v.append(a[:self.neg_sampling_num])
+                # assert len(pos_u) == len(neg_v)
+                # pos_u = np.array(pos_u)
+                # neg_v = np.array(neg_v)
 
-                assert len(pos_u) == len(neg_v)
-                pos_u = np.array(pos_u)
-                neg_v = np.array(neg_v)
+                # pos_u, pos_v = self.dataset_sampler.get_batch(pos_u, self.permutate)
+                # _ ,neg_v = self.dataset_sampler.get_batch(neg_v.flatten())
 
-                pos_u, pos_v = self.dataset_sampler.get_batch(pos_u, self.permutate)
-                _ ,neg_v = self.dataset_sampler.get_batch(neg_v.flatten())
-
+                loss = self.model(data)
                 optimizer.zero_grad()
-                loss = self.model(pos_u, pos_v, neg_v, self.batch_size)
 
                 if self.args.clip is not None:
                     torch.nn.utils.clip_grad_norm(self.model.parameters(), self.args.clip)
@@ -98,16 +101,18 @@ class Trainer:
                 optimizer.step()
 
                 losses.append(loss.item())
-                print('epoch %d, batch=%2d : loss=%4.3f\n' %(epoch, batch_num, loss.item()),end="")
+                # print('epoch %d, batch=%2d : loss=%4.3f\n' %(epoch, batch_num, loss.item()),end="")
 
-                batch_num = batch_num + 1 
                 # torch.cuda.empty_cache()
+                batch_num = batch_num + 1 
                 # gc.collect()
+
+            print('epoch %d, loss=%4.3f\n' %(epoch, np.mean(losses)))
 
             if epoch%self.args.log_interval == 0:
                 print('getting embeddings ...')
-                embeddings = self.model.get_embeddings(total_num=self.dataset_sampler.num_graphs, batch_size=self.batch_size, permutate_sz=1)
-                history[epoch] = (evaluate_embedding(self.args.datadir, self.args.DS, embeddings, self.args.max_num_nodes), np.mean(losses))
+                embeddings, labels = self.model.get_embeddings(self.dataloader)
+                history[epoch] = (evaluate_embedding(self.args.datadir, self.args.DS, embeddings, labels), np.mean(losses))
                 # history[batch_num] = (evaluate_embedding(self.args.datadir, self.args.DS, embeddings, self.args.max_num_nodes), np.mean(losses))
                 print(history)
                 accuracies = []
@@ -134,13 +139,22 @@ class Trainer:
             print('mean', np.mean(accuracies))
             print('=================')
             print("Optimization Finished!")
+
+            tpe = ''
+            if self.args.glob:
+                tpe += 'global'
+            if self.args.local:
+                tpe += 'local'
+            if self.args.prior:
+                tpe += 'prior'
             if self.epoch_num == 100:
-                f.write('{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}\n'.format(
+                f.write('{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}\n'.format(
                      self.args.DS,
-                     'nor' if self.args.no_node_attr else 'all',
+                     'nor' if self.args.no_node_labels else 'all',
+                     'concat' if self.args.concat else 'nonconcat',
                      self.args.neg_sampling_num,
                      self.args.lr,
-                     self.args.local_ds if self.args.local else 'global',
+                     tpe,
                      self.args.num_gc_layers,
                      self.args.loss_type,
                      history[-1][0],
@@ -158,12 +172,13 @@ class Trainer:
                      np.max(accuracies),
                      np.mean(accuracies)))
             if self.epoch_num == 10:
-                f.write('{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}\n'.format(
+                f.write('{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}\n'.format(
                      self.args.DS,
-                     'nor' if self.args.no_node_attr else 'all',
+                     'nor' if self.args.no_node_labels else 'all',
+                     'concat' if self.args.concat else 'noconcat',
                      self.args.neg_sampling_num,
                      self.args.lr,
-                     self.args.local_ds if self.args.local else 'global',
+                     tpe,
                      self.args.num_gc_layers,
                      self.args.loss_type,
                      history[-1][0],
@@ -173,8 +188,8 @@ class Trainer:
                      history[3][0],
                      history[4][0],
                      history[5][0],
-                     history[6][0],
                      history[7][0],
+                     history[6][0],
                      history[8][0],
                      history[9][0],
                      history[self.epoch_num][0],

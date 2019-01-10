@@ -1,8 +1,7 @@
-import os
 import networkx as nx
 import numpy as np
-from tqdm import tqdm
-from glob import glob
+import scipy as sc
+import os
 import re
 
 def read_graphfile(datadir, dataname, max_nodes=None):
@@ -29,11 +28,11 @@ def read_graphfile(datadir, dataname, max_nodes=None):
         with open(filename_nodes) as f:
             for line in f:
                 line=line.strip("\n")
-                node_labels+=[int(line)]
-        # node_labels = LabelEncoder().fit_transform(node_labels)
+                node_labels+=[int(line) - 1]
+        num_unique_node_labels = max(node_labels) + 1
     except IOError:
         print('No node labels')
-
+ 
     filename_node_attrs=prefix + '_node_attributes.txt'
     node_attrs=[]
     try:
@@ -61,44 +60,39 @@ def read_graphfile(datadir, dataname, max_nodes=None):
     
     filename_adj=prefix + '_A.txt'
     adj_list={i:[] for i in range(1,len(graph_labels)+1)}    
-    # index_graph={i:[] for i in range(1,len(graph_labels)+1)}
+    index_graph={i:[] for i in range(1,len(graph_labels)+1)}
     num_edges = 0
     with open(filename_adj) as f:
         for line in f:
             line=line.strip("\n").split(",")
             e0,e1=(int(line[0].strip(" ")),int(line[1].strip(" ")))
             adj_list[graph_indic[e0]].append((e0,e1))
-            # index_graph[graph_indic[e0]]+=[e0,e1]
+            index_graph[graph_indic[e0]]+=[e0,e1]
             num_edges += 1
-    # for k in index_graph.keys():
-        # index_graph[k]=[u-1 for u in set(index_graph[k])]
-
+    for k in index_graph.keys():
+        index_graph[k]=[u-1 for u in set(index_graph[k])]
 
     graphs=[]
     for i in range(1,1+len(adj_list)):
         # indexed from 1 here
         G=nx.from_edgelist(adj_list[i])
-        graphs.append(G)
+        # if max_nodes is not None and G.number_of_nodes() > max_nodes:
+            # continue
       
         # add features and labels
-    for nodeid, nl in enumerate(node_labels):
-        nodeid += 1
-        graphs[graph_indic[nodeid]-1].add_node(nodeid)
-        # graphs[graph_indic[nodeid]-1][nodeid]['label'] = nl
-
-    for idx, G in enumerate(graphs):
-        # no graph labels needed
-        G.graph['label'] = graph_labels[idx]
+        G.graph['label'] = graph_labels[i-1]
         for u in G.nodes():
             if len(node_labels) > 0:
-                G.node[u]['label'] = node_labels[u-1]
+                node_label_one_hot = [0] * num_unique_node_labels
+                node_label = node_labels[u-1]
+                node_label_one_hot[node_label] = 1
+                G.node[u]['label'] = node_label_one_hot
             if len(node_attrs) > 0:
                 G.node[u]['feat'] = node_attrs[u-1]
+        if len(node_attrs) > 0:
+            G.graph['feat_dim'] = node_attrs[0].shape[0]
 
-        graphs[idx] = G
-
-    # relabeling
-    for idx, G in enumerate(graphs):
+        # relabeling
         mapping={}
         it=0
         if float(nx.__version__)<2.0:
@@ -111,13 +105,10 @@ def read_graphfile(datadir, dataname, max_nodes=None):
                 it+=1
             
         # indexed from 0
-        G = nx.relabel_nodes(G, mapping)
+        graphs.append(nx.relabel_nodes(G, mapping))
 
-        if max_nodes and G.number_of_nodes() > max_nodes:
-            G = G.subgraph([i for i in range(0, max_nodes)])
 
-        graphs[idx] = G
+    np.random.shuffle(graphs)
 
-    # either max_nodes is 0 or None or 
-    # return [g for g in graphs if g.number_of_nodes() <= 2000]
     return graphs
+
