@@ -76,8 +76,8 @@ def read_graphfile(datadir, dataname, max_nodes=None):
     for i in range(1,1+len(adj_list)):
         # indexed from 1 here
         G=nx.from_edgelist(adj_list[i])
-        # if max_nodes is not None and G.number_of_nodes() > max_nodes:
-            # continue
+        if max_nodes is not None and max_nodes and G.number_of_nodes() > max_nodes:
+            continue
       
         # add features and labels
         G.graph['label'] = graph_labels[i-1]

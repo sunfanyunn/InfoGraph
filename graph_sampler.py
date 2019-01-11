@@ -79,11 +79,20 @@ class GraphSampler(torch.utils.data.Dataset):
                     # f[i,:] = G.node[u]['feat']
                 f = np.zeros((self.max_num_nodes, self.input_dim), dtype=float)
                 if self.node_label_dim > 0:
+                    find_zero = False
                     for i,u in enumerate(G.nodes()):
-                        f[i, int(G.node[u]['label'])] = 1.
-                if self.feat_dim > 0:
+                        if int(G.node[u]['label']) == 0:
+                            find_zero = True
                     for i,u in enumerate(G.nodes()):
-                        f[i, self.node_label_dim:-2] = G.node[u]['feat']
+                        if int(G.node[u]['label']) == 0:
+                            if find_zero:
+                                f[i, int(G.node[u]['label'])] = 1.
+                            else:
+                                f[i, int(G.node[u]['label'])-1] = 1.
+
+                # if self.feat_dim > 0:
+                    # for i,u in enumerate(G.nodes()):
+                        # f[i, self.node_label_dim:-2] = G.node[u]['feat']
 
                 degs = np.sum(np.array(adj), 1)
                 degs = np.expand_dims(np.pad(degs, [0, self.max_num_nodes - G.number_of_nodes()],
@@ -96,6 +105,9 @@ class GraphSampler(torch.utils.data.Dataset):
                                              axis=1)
                 g_feat = np.hstack([degs, clusterings])
                 f[:, -2:] = g_feat
+                # print(g_feat.shape)
+                # print(f.shape)
+                # input()
                 self.feature_all.append(f)
 
             elif features == 'id':

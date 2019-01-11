@@ -21,8 +21,8 @@ class GlobalDiscriminator(nn.Module):
 
         self.l0 = nn.Linear(input_dim + args.embedding_dim, 512)
         self.l1 = nn.Linear(512, 512)
-        self.l2 = nn.Linear(512, 1)
 
+        self.l2 = nn.Linear(512, 1)
     def forward(self, y, M, data):
 
         adj = Variable(data['adj'].float(), requires_grad=False).cuda()
@@ -96,6 +96,13 @@ class Encoder(nn.Module):
         h0 = Variable(data['feats'].float()).cuda()
         batch_num_nodes = data['num_nodes'].int().numpy()
         enc, features = self.encoder(h0, adj, batch_num_nodes)
+
+        # print(enc.shape, h0.shape, features.shape)
+        # for i in range(64):
+            # print(batch_num_nodes[i])
+            # print('normal', features[i][:batch_num_nodes[i]])
+            # print('not normal', features[i][batch_num_nodes[i]:])
+            # input()
         enc = self.l2(F.relu(self.l1(F.relu(self.l0(enc)))))
         return enc, features
 
@@ -156,6 +163,9 @@ class GcnInfomax(nn.Module):
         loss += GLOBAL
 
     if self.local:
+        batch_num_nodes = data['num_nodes'].int().numpy()
+        batch_num_nodes_prime = np.concatenate((batch_num_nodes[1:], batch_num_nodes[:1]))
+        # print(batch_num_nodes.shape, batch_num_nodes_prime.shape)
         # y.shape: [batch_size, embedding_dim]
         # M.shape: [batch_size, max_num_nodes, encoder_embedding_dim]
         y_exp = y.unsqueeze(-1)
@@ -167,8 +177,19 @@ class GcnInfomax(nn.Module):
         y_M_prime = torch.cat((M_prime.transpose(1,2), y_exp), dim=1)
         
 
-        Ej = -F.softplus(-self.local_d(y_M)).mean()
-        Em = F.softplus(self.local_d(y_M_prime)).mean()
+        tmp = self.local_d(y_M)
+        tmp1 = [tmp[i,:,:batch_num_nodes[i]].flatten() for i in range(batch_size)]
+        local_d_y_M = torch.cat(tmp1)
+
+        tmp = self.local_d(y_M_prime)
+        tmp1 = [tmp[i,:,:batch_num_nodes_prime[i]].flatten() for i in range(batch_size)]
+        local_d_y_M_prime = torch.cat(tmp1)
+        
+        # print(local_d_y_M.shape, local_d_y_M_prime.shape)
+        # Ej = -F.softplus(-self.local_d(y_M)).mean()
+        # Em = F.softplus(self.local_d(y_M_prime)).mean()
+        Ej = -F.softplus(-local_d_y_M).mean()
+        Em = F.softplus(local_d_y_M_prime).mean()
         LOCAL = (Em - Ej) * self.beta
         loss += LOCAL
 
