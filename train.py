@@ -77,20 +77,6 @@ class Trainer:
             cur = 0
             for batch_idx, data in enumerate(self.dataloader):
 
-                # neg_v = []
-                # for i in range(self.batch_size):
-                    # a = np.arange(self.num_graphs)
-                    # np.random.shuffle(a)
-                    # a = np.setdiff1d(a, pos_u[i])
-                    # neg_v.append(a[:self.neg_sampling_num])
-
-                # assert len(pos_u) == len(neg_v)
-                # pos_u = np.array(pos_u)
-                # neg_v = np.array(neg_v)
-
-                # pos_u, pos_v = self.dataset_sampler.get_batch(pos_u, self.permutate)
-                # _ ,neg_v = self.dataset_sampler.get_batch(neg_v.flatten())
-
                 loss = self.model(data)
                 optimizer.zero_grad()
 
@@ -101,9 +87,6 @@ class Trainer:
                 optimizer.step()
 
                 losses.append(loss.item())
-                # print('epoch %d, batch=%2d : loss=%4.3f\n' %(epoch, batch_num, loss.item()),end="")
-
-                # torch.cuda.empty_cache()
                 batch_num = batch_num + 1 
                 # gc.collect()
 

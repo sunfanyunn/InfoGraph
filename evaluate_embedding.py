@@ -65,15 +65,50 @@ def evaluate_embedding(datadir, DS, embeddings, labels):
     labels = preprocessing.LabelEncoder().fit_transform(labels)
     x, y = np.array(embeddings), np.array(labels)
 
-    ridx = np.arange(y.shape[0])
-    np.random.shuffle(ridx)
-    x, y = x[ridx], y[ridx]
-    print('embeddings.shape', x.shape)
-    print('labels.shape', y.shape)
-
+    # ridx = np.arange(y.shape[0])
+    # np.random.shuffle(ridx)
+    # x, y = x[ridx], y[ridx]
+    # print('embeddings.shape', x.shape)
+    # print('labels.shape', y.shape)
+    
+    from logreg import classify
+    acc = classify(x, y)
+    return acc
     kf = StratifiedKFold(n_splits=10, shuffle=True, random_state=None)
-    """
+
     print('Starting cross-validation')
+    # accuracies = []
+    # for train_index, test_index in kf.split(x, y):
+
+        # x_train, x_test = x[train_index], x[test_index]
+        # y_train, y_test = y[train_index], y[test_index]
+        # # x_train, x_val, y_train, y_val = train_test_split(x_train, y_train, test_size=0.1)
+        # search=False
+        # if search:
+            # params = {'C':[0.001, 0.01,0.1,1,10,100,1000]}
+            # classifier = GridSearchCV(SVC(), params, cv=10, scoring='accuracy', verbose=0)
+        # else:
+            # classifier = SVC(C=10)
+        # classifier.fit(x_train, y_train)
+        # accuracies.append(accuracy_score(y_test, classifier.predict(x_test)))
+    # print('svc', np.mean(accuracies))
+
+    # accuracies = []
+    # for train_index, test_index in kf.split(x, y):
+
+        # x_train, x_test = x[train_index], x[test_index]
+        # y_train, y_test = y[train_index], y[test_index]
+        # # x_train, x_val, y_train, y_val = train_test_split(x_train, y_train, test_size=0.1)
+        # search=False
+        # if search:
+            # classifier = GridSearchCV(LinearSVC(), params, cv=10, scoring='accuracy', verbose=0)
+            # params = {'C':[0.001, 0.01,0.1,1,10,100,1000]}
+        # else:
+            # classifier = SVC(C=10)
+        # classifier.fit(x_train, y_train)
+        # accuracies.append(accuracy_score(y_test, classifier.predict(x_test)))
+    # print('LinearSvc', np.mean(accuracies))
+
     accuracies = []
     for train_index, test_index in kf.split(x, y):
 
@@ -81,45 +116,11 @@ def evaluate_embedding(datadir, DS, embeddings, labels):
         y_train, y_test = y[train_index], y[test_index]
         # x_train, x_val, y_train, y_val = train_test_split(x_train, y_train, test_size=0.1)
         search=False
-        if search:
-            params = {'C':[0.001, 0.01,0.1,1,10,100,1000]}
-            classifier = GridSearchCV(SVC(), params, cv=10, scoring='accuracy', verbose=0)
-        else:
-            classifier = SVC(C=10)
-        classifier.fit(x_train, y_train)
-        accuracies.append(accuracy_score(y_test, classifier.predict(x_test)))
-    print(accuracies)
-    print('svc', np.mean(accuracies))
-
-    accuracies = []
-    for train_index, test_index in kf.split(x, y):
-
-        x_train, x_test = x[train_index], x[test_index]
-        y_train, y_test = y[train_index], y[test_index]
-        # x_train, x_val, y_train, y_val = train_test_split(x_train, y_train, test_size=0.1)
-        search=False
-        if search:
-            classifier = GridSearchCV(LinearSVC(), params, cv=10, scoring='accuracy', verbose=0)
-            params = {'C':[0.001, 0.01,0.1,1,10,100,1000]}
-        else:
-            classifier = SVC(C=10)
-        classifier.fit(x_train, y_train)
-        accuracies.append(accuracy_score(y_test, classifier.predict(x_test)))
-    print(accuracies)
-    print('LinearSvc', np.mean(accuracies))
-    """
-    accuracies = []
-    for train_index, test_index in kf.split(x, y):
-
-        x_train, x_test = x[train_index], x[test_index]
-        y_train, y_test = y[train_index], y[test_index]
-        # x_train, x_val, y_train, y_val = train_test_split(x_train, y_train, test_size=0.1)
-        search=True
         if search:
             params = {'C':[0.001, 0.01,0.1,1,10,100,1000]}
             classifier = GridSearchCV(LogisticRegression(), params, cv=5, scoring='accuracy', verbose=0)
         else:
-            classifier = LogisticRegression(C=10)
+            classifier = LogisticRegression()
         classifier.fit(x_train, y_train)
         # print(y_test, classifier.predict(x_test))
         accuracies.append(accuracy_score(y_test, classifier.predict(x_test)))

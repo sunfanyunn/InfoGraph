@@ -107,7 +107,7 @@ class Encoder(nn.Module):
         return enc, features
 
 class GcnInfomax(nn.Module):
-  def __init__(self, args, alpha=0.5, beta=1., gamma=.1):
+  def __init__(self, args, alpha=0.5, beta=.1, gamma=.1):
     super(GcnInfomax, self).__init__()
 
     # self.embedding_dim = args.output_dim
@@ -150,10 +150,29 @@ class GcnInfomax(nn.Module):
   def forward(self, data):
 
     batch_size = data['adj'].shape[0]
+    max_nodes = data['feats'].shape[1]
+    batch_num_nodes = data['num_nodes'].int().numpy()
     # neg_sampling_size = self.neg_sampling_size
 
     y, M = self.encoder(data)
+
+        
+    """
+    feat_shuffle = data['feats'].clone()
+    idx = np.random.permutation(max_nodes)
+    feat_shuffle = feat_shuffle[:, idx, :]
+
+        feat_shuffle[i] = feat_shuffle[i, idx, :]
+    for i in range(batch_size):
+        idx = np.concatenate((np.random.permutation(batch_num_nodes[i]), np.arange(batch_num_nodes[i],max_nodes)))
+        feat_shuffle[i] = feat_shuffle[i, idx, :]
+
+    data['feats'] = feat_shuffle 
+    _, M_prime = self.encoder(data)
+    """
+
     M_prime = torch.cat((M[1:], M[0].unsqueeze(0)), dim=0)
+    
 
     loss = 0.
     if self.glob:
@@ -177,13 +196,18 @@ class GcnInfomax(nn.Module):
         y_M_prime = torch.cat((M_prime.transpose(1,2), y_exp), dim=1)
         
 
-        tmp = self.local_d(y_M)
-        tmp1 = [tmp[i,:,:batch_num_nodes[i]].flatten() for i in range(batch_size)]
-        local_d_y_M = torch.cat(tmp1)
+        mask=False
+        if mask:
+            tmp = self.local_d(y_M)
+            tmp1 = [tmp[i,:,:batch_num_nodes[i]].flatten() for i in range(batch_size)]
+            local_d_y_M = torch.cat(tmp1)
 
-        tmp = self.local_d(y_M_prime)
-        tmp1 = [tmp[i,:,:batch_num_nodes_prime[i]].flatten() for i in range(batch_size)]
-        local_d_y_M_prime = torch.cat(tmp1)
+            tmp = self.local_d(y_M_prime)
+            tmp1 = [tmp[i,:,:batch_num_nodes_prime[i]].flatten() for i in range(batch_size)]
+            local_d_y_M_prime = torch.cat(tmp1)
+        else:
+            local_d_y_M = self.local_d(y_M)
+            local_d_y_M_prime = self.local_d(y_M_prime)
         
         # print(local_d_y_M.shape, local_d_y_M_prime.shape)
         # Ej = -F.softplus(-self.local_d(y_M)).mean()

@@ -30,10 +30,13 @@ def go2():
 
 
 def go():
-    main_df = pd.read_csv('log_0')
+    main_df = pd.read_csv(sys.argv[1])
     DSs = main_df.DS.unique()
-    if sys.argv[1] in DSs:
-        DSs = [sys.argv[1]]
+    try:
+        if sys.argv[2] in DSs:
+            DSs = [sys.argv[2]]
+    except:
+        pass
     for DS in DSs:
         df = main_df[main_df.DS == DS]
         print('=================')
