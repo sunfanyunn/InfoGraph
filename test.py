@@ -1,66 +1,49 @@
 import sys
+import numpy as np
+import json
 import pandas as pd
-
-def go2():
-    main_df = pd.read_csv('backup2/log')
-    DSs = main_df.DS.unique()
-    if sys.argv[1] in DSs:
-        DSs = [sys.argv[1]]
-    for DS in DSs:
-        df = main_df[main_df.DS == DS]
-        print('=================')
-        print(DS)
-        print('=================')
-        for used_info in ['nor', 'all']:
-            tmpddf = df[(df.used_info == used_info)]
-            gcs = tmpddf.gc.unique()
-            types = tmpddf.type.unique()
-            for gc in gcs:
-                for tpe in types:
-                    tmpdf = tmpddf[(tmpddf.gc == gc) & (tmpddf.type == tpe)]
-
-                    mx, mx_std = 0, 0
-                    for i in range(11):
-                        if tmpdf[str(i)].mean() > mx:
-                            mx, mx_std = tmpdf[str(i)].mean(), tmpdf[str(i)].std()
-                    # if tpe == 'global':
-                        # tpe = DS + '-' + tpe
-                    print(gc, used_info, tpe, mx, mx_std)
-                    print(gc, used_info, 'Random-Init', tmpdf['_1'].mean(), tmpdf['_1'].std())
-
-
-def go():
-    main_df = pd.read_csv(sys.argv[1])
-    DSs = main_df.DS.unique()
-    try:
-        if sys.argv[2] in DSs:
-            DSs = [sys.argv[2]]
-    except:
-        pass
-    for DS in DSs:
-        df = main_df[main_df.DS == DS]
-        print('=================')
-        print(DS)
-        print('=================')
-        for concat in ['concat', 'noconcat']:
-            for used_info in ['nor', 'all']:
-                tmpdddf = df[(df.concat == concat) & (df.used_info == used_info)]
-                for lr in tmpdddf.lr.unique():
-                    tmpddf = tmpdddf[tmpdddf.lr == lr]
-                    gcs = tmpddf.gc.unique()
-                    types = tmpddf.type.unique()
-                    for gc in gcs:
-                        for tpe in types:
-                            tmpdf = tmpddf[(tmpddf.gc == gc) & (tmpddf.type == tpe)]
-
-                            mx, mx_std, num = 0, 0, 0
-                            for i in range(11):
-                                if tmpdf[str(i)].mean() > mx:
-                                    mx, mx_std, num = tmpdf[str(i)].mean(), tmpdf[str(i)].std(), tmpdf[str(i)].shape[0]
-                            # if tpe == 'global':
-                                # tpe = DS + '-' + tpe
-                            print(gc, lr, used_info, tpe, mx, mx_std, num)
-                            print(gc, lr, used_info, 'Random-Init', tmpdf['_1'].mean(), tmpdf['_1'].std())
+import collections
 
 if __name__ == '__main__':
-    go()
+
+    for epoch in [20, 100]:
+        print(epoch)
+        real_res = {'logreg':[-1], 'svc':[-1], 'linearsvc':[-1], 'randomforest':[-1]}
+        for gc in [3, 5, 8, 16]:
+            for lr in [0.01, 0.1, 0.001]:
+                for tpe in ['local', 'localprior']:
+                    res = collections.defaultdict(lambda :collections.defaultdict(list))
+                    with open(sys.argv[1], 'r') as f:
+                        for line in f:
+                            x = line.strip().split(',', 6)
+                            if x[1] != tpe:
+                                continue
+                            if x[2] != str(gc):
+                                continue
+                            if x[3] != str(epoch):
+                                continue
+                            if x[5] != str(lr):
+                                continue
+                            tmp = json.loads(x[-1])
+
+                            DS = x[0]
+                            res[DS]['logreg'].append(tmp['logreg'])
+                            res[DS]['svc'].append(tmp['svc'])
+                            res[DS]['linearsvc'].append(tmp['linearsvc'])
+                            res[DS]['randomforest'].append(tmp['randomforest'])
+
+                    for DS, lst in res.items():
+                        if DS != sys.argv[2]:
+                            continue
+                        # print('====================')
+                        # print(DS)
+                        for clf, v in lst.items():
+                            mn = np.mean(np.array(v[:5]), axis=0)
+                            std = np.std(np.array(v[:5]), axis=0)
+
+                            idx = np.argmax(mn)
+                            if mn[idx] > real_res[clf][0] and len(v) > 1:
+                                real_res[clf] = [mn[idx], std[idx], epoch, lr, gc, idx, len(v)]
+                                # print(epoch, lr, gc, clf, idx, mn[idx], std[idx], len(v))
+        print(real_res)
+
