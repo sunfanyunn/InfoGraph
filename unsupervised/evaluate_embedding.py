@@ -107,7 +107,6 @@ def svc_classify(x, y, search):
         accuracies.append(accuracy_score(y_test, classifier.predict(x_test)))
     return np.mean(accuracies)
 
-from sklearn.ensemble import RandomForestClassifier
 def randomforest_classify(x, y, search):
     kf = StratifiedKFold(n_splits=10, shuffle=True, random_state=None)
     accuracies = []
