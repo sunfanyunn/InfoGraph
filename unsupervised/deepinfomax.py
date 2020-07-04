@@ -140,6 +140,6 @@ if __name__ == '__main__':
             accuracies['randomforest'].append(res[3])
             print(accuracies)
 
-    with open('new_log', 'a+') as f:
+    with open('unsupervised.log', 'a+') as f:
         s = json.dumps(accuracies)
         f.write('{},{},{},{},{},{}\n'.format(args.DS, args.num_gc_layers, epochs, log_interval, lr, s))
