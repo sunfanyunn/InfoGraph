@@ -83,7 +83,6 @@ def train(epoch, use_unsup_loss):
             print(sup_loss_all, unsup_loss_all)
         return loss_all / len(train_loader.dataset)
     else:
-        # tmp = []
         for data in train_loader:
             data = data.to(device)
             optimizer.zero_grad()
@@ -92,16 +91,8 @@ def train(epoch, use_unsup_loss):
             loss = sup_loss
 
             loss.backward()
-            # print(data)
-            # print(loss.item(), data.num_graphs)
-            # input()
-
             loss_all += loss.item() * data.num_graphs
-            # tmp.append(loss.item() * data.num_graphs)
-
             optimizer.step()
-            # print(list(model.parameters())[0])
-            # input()
 
         return loss_all / len(train_loader.dataset)
 
@@ -155,7 +146,7 @@ if __name__ == '__main__':
     # print(type(dataset.data.y)) #tensor
     # input()
 
-    # Random Split datasets.
+    # Split datasets.
     test_dataset = dataset[:10000]
     val_dataset = dataset[10000:20000]
     train_dataset = dataset[20000:20000+args.train_num]
@@ -163,7 +154,7 @@ if __name__ == '__main__':
     test_loader = DataLoader(test_dataset, batch_size=batch_size)
     val_loader = DataLoader(val_dataset, batch_size=batch_size)
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
-
+    
     if use_unsup_loss:
         unsup_train_dataset = dataset[20000:]
         unsup_train_loader = DataLoader(unsup_train_dataset, batch_size=batch_size, shuffle=True)
@@ -198,7 +189,7 @@ if __name__ == '__main__':
         print('Epoch: {:03d}, LR: {:7f}, Loss: {:.7f}, Validation MAE: {:.7f}, '
               'Test MAE: {:.7f},'.format(epoch, lr, loss, val_error, test_error))
 
-    with open('log', 'a+') as f:
+    with open('supervised.log', 'a+') as f:
         f.write('{},{},{},{},{},{},{},{}\n'.format(target,args.train_num,use_unsup_loss,separate_encoder,args.lamda,args.weight_decay,val_error,test_error))
 
     try:
