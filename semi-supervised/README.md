@@ -1,7 +1,7 @@
 ## Usage
 sample command
 ```
-$ python3 main.py --target TARGET_NUMBER
+$ python3 main.py --target TARGET_NUMBER --separate-encoder --use-unsup-loss
 ```
 
 ## Dataset
