@@ -1,22 +1,21 @@
-import os.path as osp
+from sklearn import preprocessing
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score
+from sklearn.model_selection import GridSearchCV, KFold, StratifiedKFold
+from sklearn.model_selection import cross_val_score
+from sklearn.svm import SVC, LinearSVC
+from torch.nn import Sequential, Linear, ReLU
+from torch_geometric.data import DataLoader
+from torch_geometric.datasets import TUDataset
+from torch_geometric.nn import GINConv, global_add_pool
 from tqdm import tqdm
-
+import numpy as np
+import os.path as osp
+import sys
 import torch
 import torch.nn.functional as F
-from torch.nn import Sequential, Linear, ReLU
-from torch_geometric.datasets import TUDataset
-from torch_geometric.data import DataLoader
-from torch_geometric.nn import GINConv, global_add_pool
 
-import numpy as np
-from sklearn.model_selection import cross_val_score
-from sklearn.model_selection import GridSearchCV, KFold, StratifiedKFold
-from sklearn.svm import SVC, LinearSVC
-from sklearn.linear_model import LogisticRegression
-from sklearn.ensemble import RandomForestClassifier
-from sklearn import preprocessing
-from sklearn.metrics import accuracy_score
-import sys
 
 class Encoder(torch.nn.Module):
     def __init__(self, num_features, dim, num_gc_layers):
@@ -77,8 +76,6 @@ class Encoder(torch.nn.Module):
         ret = np.concatenate(ret, 0)
         y = np.concatenate(y, 0)
         return ret, y
-
-
 
 class Net(torch.nn.Module):
     def __init__(self):
@@ -141,8 +138,8 @@ def test(loader):
         correct += pred.eq(data.y).sum().item()
     return correct / len(loader.dataset)
 
-if __name__ == '__main__':
 
+if __name__ == '__main__':
     for percentage in [ 1.]:
         for DS in [sys.argv[1]]:
             if 'REDDIT' in DS:

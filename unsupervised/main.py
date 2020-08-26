@@ -1,29 +1,31 @@
-import os.path as osp
-import torch
-from torch.autograd import Variable
-import torch.nn as nn
-import torch.nn.functional as F
-import numpy as np
-import json
-# from core.encoders import *
-
-from torch_geometric.datasets import TUDataset
-from torch_geometric.data import DataLoader
-import sys
-import json
-from torch import optim
-
-from cortex_DIM.nn_modules.mi_networks import MIFCNet, MI1x1ConvNet
-from losses import *
-from gin import Encoder
-from evaluate_embedding import evaluate_embedding
-from model import *
+# Optional: eliminating warnings
+def warn(*args, **kwargs):
+    pass
+import warnings
+warnings.warn = warn
 
 from arguments import arg_parse
+from cortex_DIM.nn_modules.mi_networks import MIFCNet, MI1x1ConvNet
+from evaluate_embedding import evaluate_embedding
+from gin import Encoder
+from losses import *
+from model import *
+from torch import optim
+from torch.autograd import Variable
+from torch_geometric.data import DataLoader
+from torch_geometric.datasets import TUDataset
+import json
+import json
+import numpy as np
+import os.path as osp
+import sys
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
 
-class GcnInfomax(nn.Module):
+class InfoGraph(nn.Module):
   def __init__(self, hidden_dim, num_gc_layers, alpha=0.5, beta=1., gamma=.1):
-    super(GcnInfomax, self).__init__()
+    super(InfoGraph, self).__init__()
 
     self.alpha = alpha
     self.beta = beta
@@ -31,6 +33,8 @@ class GcnInfomax(nn.Module):
     self.prior = args.prior
 
     self.embedding_dim = mi_units = hidden_dim * num_gc_layers
+    print(dataset_num_features)
+    input()
     self.encoder = Encoder(dataset_num_features, hidden_dim, num_gc_layers)
 
     self.local_d = FF(self.embedding_dim)
@@ -53,9 +57,7 @@ class GcnInfomax(nn.Module):
             if m.bias is not None:
                 m.bias.data.fill_(0.0)
 
-
   def forward(self, x, edge_index, batch, num_graphs):
-
     # batch_size = data.num_graphs
     if x is None:
         x = torch.ones(batch.shape[0]).to(device)
@@ -89,7 +91,6 @@ class GcnInfomax(nn.Module):
     return local_global_loss + PRIOR
 
 if __name__ == '__main__':
-    
     args = arg_parse()
     accuracies = {'logreg':[], 'svc':[], 'linearsvc':[], 'randomforest':[]}
     epochs = 20
@@ -101,16 +102,8 @@ if __name__ == '__main__':
     # kf = StratifiedKFold(n_splits=10, shuffle=True, random_state=None)
 
     dataset = TUDataset(path, name=DS).shuffle()
-    try:
-        dataset_num_features = dataset.num_features
-    except:
-        dataset_num_features = 1
-
+    dataset_num_features = max(dataset.num_features, 1)
     dataloader = DataLoader(dataset, batch_size=batch_size)
-
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    model = GcnInfomax(args.hidden_dim, args.num_gc_layers).to(device)
-    optimizer = torch.optim.Adam(model.parameters(), lr=lr)
 
     print('================')
     print('lr: {}'.format(lr))
@@ -119,7 +112,10 @@ if __name__ == '__main__':
     print('num_gc_layers: {}'.format(args.num_gc_layers))
     print('================')
 
-    
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    model = InfoGraph(args.hidden_dim, args.num_gc_layers).to(device)
+    optimizer = torch.optim.Adam(model.parameters(), lr=lr)
+
     model.eval()
     emb, y = model.encoder.get_embeddings(dataloader)
     res = evaluate_embedding(emb, y)

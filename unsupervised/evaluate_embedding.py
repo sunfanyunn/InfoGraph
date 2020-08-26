@@ -1,23 +1,23 @@
+from sklearn import preprocessing
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.linear_model import LogisticRegression
+from sklearn.manifold import TSNE
+from sklearn.metrics import accuracy_score
+from sklearn.model_selection import GridSearchCV, KFold, StratifiedKFold
+from sklearn.model_selection import cross_val_score
+from sklearn.neural_network import MLPClassifier
+from sklearn.svm import SVC, LinearSVC
+import matplotlib.pyplot as plt
+import numpy as np
+import os
+import pandas as pd
 import torch
 import torch.nn as nn
-import numpy as np
-import pandas as pd
-import os
-
-from sklearn.model_selection import cross_val_score
-from sklearn.model_selection import GridSearchCV, KFold, StratifiedKFold
-from sklearn.svm import SVC, LinearSVC
-from sklearn.linear_model import LogisticRegression
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.neural_network import MLPClassifier
-from sklearn import preprocessing
-from sklearn.metrics import accuracy_score
-from sklearn.manifold import TSNE
-import matplotlib.pyplot as plt
-import seaborn as sns
 
 def draw_plot(datadir, DS, embeddings, fname, max_nodes=None):
     return
+    import seaborn as sns
     graphs = read_graphfile(datadir, DS, max_nodes=max_nodes)
     labels = [graph.graph['label'] for graph in graphs]
 
@@ -53,7 +53,6 @@ class LogReg(nn.Module):
         return ret
 
 def logistic_classify(x, y):
-
     nb_classes = np.unique(y).shape[0]
     xent = nn.CrossEntropyLoss()
     hid_units = x.shape[1]
@@ -107,7 +106,6 @@ def svc_classify(x, y, search):
         accuracies.append(accuracy_score(y_test, classifier.predict(x_test)))
     return np.mean(accuracies)
 
-from sklearn.ensemble import RandomForestClassifier
 def randomforest_classify(x, y, search):
     kf = StratifiedKFold(n_splits=10, shuffle=True, random_state=None)
     accuracies = []
@@ -142,7 +140,6 @@ def linearsvc_classify(x, y, search):
     return np.mean(accuracies)
 
 def evaluate_embedding(embeddings, labels, search=True):
-
     labels = preprocessing.LabelEncoder().fit_transform(labels)
     x, y = np.array(embeddings), np.array(labels)
     print(x.shape, y.shape)

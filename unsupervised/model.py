@@ -1,14 +1,12 @@
-import torch
-from torch.autograd import Variable
-import torch.nn as nn
-import torch.nn.functional as F
-import numpy as np
-# from core.encoders import *
-import json
-from torch import optim
-
 from cortex_DIM.nn_modules.mi_networks import MIFCNet, MI1x1ConvNet
 from losses import *
+from torch import optim
+from torch.autograd import Variable
+import json
+import numpy as np
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
 
 
 class GlobalDiscriminator(nn.Module):
