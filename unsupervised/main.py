@@ -47,8 +47,6 @@ class InfoGraph(nn.Module):
 
     self.init_emb()
 
-    self.adj_loss = True
-
   def init_emb(self):
     initrange = -1.5 / self.embedding_dim
     for m in self.modules():
@@ -69,12 +67,8 @@ class InfoGraph(nn.Module):
 
     mode='fd'
     measure='JSD'
-
-    if args.local:
-        local_global_loss = local_global_loss_(l_enc, g_enc, edge_index, batch, measure)
-    else:
-        local_global_loss = 0
-
+    local_global_loss = local_global_loss_(l_enc, g_enc, edge_index, batch, measure)
+ 
     if self.prior:
         prior = torch.rand_like(y)
         term_a = torch.log(self.prior_d(prior)).mean()
@@ -82,11 +76,6 @@ class InfoGraph(nn.Module):
         PRIOR = - (term_a + term_b) * self.gamma
     else:
         PRIOR = 0
-    
-    if self.adj_loss:
-        adj_loss = adj_loss_(l_enc, g_enc, edge_index, batch)
-        print(local_global_loss, PRIOR, adj_loss)
-        return local_global_loss + PRIOR + adj_loss
     
     return local_global_loss + PRIOR
 
@@ -147,7 +136,6 @@ if __name__ == '__main__':
             accuracies['randomforest'].append(res[3])
             print(accuracies)
 
-    tpe  = ('local' if args.local else '') + ('global' if args.glob else '') + ('prior' if args.prior else '')
-    with open('new_log', 'a+') as f:
+    with open('unsupervised.log', 'a+') as f:
         s = json.dumps(accuracies)
-        f.write('{},{},{},{},{},{},{}\n'.format(args.DS, tpe, args.num_gc_layers, epochs, log_interval, lr, s))
+        f.write('{},{},{},{},{},{}\n'.format(args.DS, args.num_gc_layers, epochs, log_interval, lr, s))
