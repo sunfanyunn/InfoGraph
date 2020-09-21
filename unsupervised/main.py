@@ -33,8 +33,6 @@ class InfoGraph(nn.Module):
     self.prior = args.prior
 
     self.embedding_dim = mi_units = hidden_dim * num_gc_layers
-    print(dataset_num_features)
-    input()
     self.encoder = Encoder(dataset_num_features, hidden_dim, num_gc_layers)
 
     self.local_d = FF(self.embedding_dim)
