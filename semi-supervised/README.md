@@ -9,5 +9,6 @@ $ python3 mean_teacher.py --target TARGET_NUMBER --separate-encoder
 ```
 
 ## Dataset
-- QM9
+
+- QM9 should be automatically downloaded when you have [pytorch_geometric](https://github.com/rusty1s/pytorch_geometric) installed properly.
 - ZINC (not implemented)
