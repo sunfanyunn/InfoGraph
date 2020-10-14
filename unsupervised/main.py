@@ -8,8 +8,8 @@ from arguments import arg_parse
 from cortex_DIM.nn_modules.mi_networks import MIFCNet, MI1x1ConvNet
 from evaluate_embedding import evaluate_embedding
 from gin import Encoder
-from losses import *
-from model import *
+from losses import local_global_loss_
+from model import FF, PriorDiscriminator
 from torch import optim
 from torch.autograd import Variable
 from torch_geometric.data import DataLoader
@@ -105,6 +105,7 @@ if __name__ == '__main__':
 
     model.eval()
     emb, y = model.encoder.get_embeddings(dataloader)
+    print('===== Before training =====')
     res = evaluate_embedding(emb, y)
     accuracies['logreg'].append(res[0])
     accuracies['svc'].append(res[1])
@@ -122,7 +123,7 @@ if __name__ == '__main__':
             loss_all += loss.item() * data.num_graphs
             loss.backward()
             optimizer.step()
-        print('Epoch {}, Loss {}'.format(epoch, loss_all / len(dataloader)))
+        print('===== Epoch {}, Loss {} ====='.format(epoch, loss_all / len(dataloader)))
 
         if epoch % log_interval == 0:
             model.eval()

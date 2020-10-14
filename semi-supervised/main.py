@@ -1,25 +1,23 @@
-import os
-import sys
-import os.path as osp
-import numpy as np
-import random
-
-import torch
-import torch.nn.functional as F
 from torch.nn import Sequential, Linear, ReLU, GRU
-
-import torch_geometric.transforms as T
+from torch_geometric.data import DataLoader
 from torch_geometric.datasets import QM9
 from torch_geometric.nn import NNConv, Set2Set
-from torch_geometric.data import DataLoader
 from torch_geometric.utils import remove_self_loops
+import numpy as np
+import os
+import os.path as osp
+import random
+import sys
+import torch
+import torch.nn.functional as F
+import torch_geometric.transforms as T
+
 
 class MyTransform(object):
     def __call__(self, data):
         # Specify target.
         data.y = data.y[:, target]
         return data
-
 
 class Complete(object):
     def __call__(self, data):
@@ -96,7 +94,6 @@ def train(epoch, use_unsup_loss):
 
         return loss_all / len(train_loader.dataset)
 
-
 def test(loader):
     model.eval()
     error = 0
@@ -105,7 +102,6 @@ def test(loader):
         data = data.to(device)
         error += (model(data) * std - data.y * std).abs().sum().item()  # MAE
     return error / len(loader.dataset)
-
 
 def seed_everything(seed=1234):
     random.seed(seed)
@@ -123,6 +119,9 @@ if __name__ == '__main__':
     from arguments import arg_parse 
     args = arg_parse()
 
+    # ============
+    # Hyperparameters
+    # ============
     target = args.target
     dim = 64
     epochs = 500
@@ -144,7 +143,6 @@ if __name__ == '__main__':
     # print(type(dataset[0]))
     # print(type(dataset.data.x)) #tensor
     # print(type(dataset.data.y)) #tensor
-    # input()
 
     # Split datasets.
     test_dataset = dataset[:10000]
@@ -181,7 +179,6 @@ if __name__ == '__main__':
         scheduler.step(val_error)
 
         if best_val_error is None or val_error <= best_val_error:
-            print('Update')
             test_error = test(test_loader)
             best_val_error = val_error
 
@@ -191,8 +188,3 @@ if __name__ == '__main__':
 
     with open('supervised.log', 'a+') as f:
         f.write('{},{},{},{},{},{},{},{}\n'.format(target,args.train_num,use_unsup_loss,separate_encoder,args.lamda,args.weight_decay,val_error,test_error))
-
-    try:
-        torch.save(model, 'saved_models/{}.model'.format(target))
-    except Exception as e:
-        print(e)

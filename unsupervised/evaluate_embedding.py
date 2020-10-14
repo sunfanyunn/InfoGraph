@@ -142,7 +142,7 @@ def linearsvc_classify(x, y, search):
 def evaluate_embedding(embeddings, labels, search=True):
     labels = preprocessing.LabelEncoder().fit_transform(labels)
     x, y = np.array(embeddings), np.array(labels)
-    print(x.shape, y.shape)
+    # print(x.shape, y.shape)
 
     logreg_accuracies = [logistic_classify(x, y) for _ in range(1)]
     # print(logreg_accuracies)

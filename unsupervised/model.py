@@ -1,5 +1,4 @@
 from cortex_DIM.nn_modules.mi_networks import MIFCNet, MI1x1ConvNet
-from losses import *
 from torch import optim
 from torch.autograd import Variable
 import json

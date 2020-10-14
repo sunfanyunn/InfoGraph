@@ -1,25 +1,23 @@
-import os
-import sys
-import os.path as osp
-import numpy as np
-import random
-
-import torch
-import torch.nn.functional as F
 from torch.nn import Sequential, Linear, ReLU, GRU
-
-import torch_geometric.transforms as T
+from torch_geometric.data import DataLoader
 from torch_geometric.datasets import QM9
 from torch_geometric.nn import NNConv, Set2Set
-from torch_geometric.data import DataLoader
 from torch_geometric.utils import remove_self_loops
+import numpy as np
+import os
+import os.path as osp
+import random
+import sys
+import torch
+import torch.nn.functional as F
+import torch_geometric.transforms as T
+
 
 class MyTransform(object):
     def __call__(self, data):
         # Specify target.
         data.y = data.y[:, target]
         return data
-
 
 class Complete(object):
     def __call__(self, data):
@@ -74,9 +72,6 @@ def train(epoch, use_unsup_loss):
         loss = sup_loss + unsup_loss
 
         loss.backward()
-        # print(data)
-        # print(loss.item(), data.num_graphs)
-        # input()
 
         sup_loss_all += sup_loss.item() * data.num_graphs
         unsup_loss_all += unsup_loss.item() * data.num_graphs
@@ -133,6 +128,7 @@ if __name__ == '__main__':
     path = osp.join(osp.dirname(osp.realpath(__file__)), '..', 'data', 'QM9')
     transform = T.Compose([MyTransform(), Complete(), T.Distance(norm=False)])
     dataset = QM9(path, transform=transform).shuffle()
+    print('num_features : {}\n'.format(dataset.num_features))
 
     # Normalize targets to mean = 0 and std = 1.
     mean = dataset.data.y[:, target].mean().item()
@@ -184,12 +180,11 @@ if __name__ == '__main__':
         scheduler.step(val_error)
 
         if best_val_error is None or val_error <= best_val_error:
-            print('Update')
             test_error = test(test_loader)
             best_val_error = val_error
 
         print('Epoch: {:03d}, LR: {:7f}, Loss: {:.7f}, Validation MAE: {:.7f}, '
               'Test MAE: {:.7f},'.format(epoch, lr, loss, val_error, test_error))
 
-    with open('mean-teacher-log', 'a+') as f:
+    with open('mean-teacher.log', 'a+') as f:
         f.write('{},{},{},{},{},{},{},{}\n'.format(target,args.train_num,use_unsup_loss,separate_encoder,args.lamda,args.weight_decay,val_error,test_error))
