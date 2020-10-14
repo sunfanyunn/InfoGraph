@@ -83,10 +83,9 @@ def train(epoch, use_unsup_loss):
         global_step += 1
         update_ema_variables(model, teacher_model, ema_decay, global_step)
 
-        # print(list(model.parameters())[0])
-        # input()
+    print('sup_loss_all', sup_loss_all / len(train_loader.dataset))
+    print('unsup_loss_all', unsup_loss_all / len(train_loader.dataset))
 
-    print(sup_loss_all / len(train_loader.dataset), unsup_loss_all / len(train_loader.dataset))
     return loss_all / len(train_loader.dataset)
 
 
@@ -122,7 +121,7 @@ if __name__ == '__main__':
     epochs = 1000
     batch_size = 20
     lamda = args.lamda
-    use_unsup_loss = True#args.use_unsup_loss
+    use_unsup_loss = True
     separate_encoder = args.separate_encoder
 
     path = osp.join(osp.dirname(osp.realpath(__file__)), '..', 'data', 'QM9')
@@ -139,20 +138,13 @@ if __name__ == '__main__':
     test_dataset = dataset[:10000]
     val_dataset = dataset[10000:20000]
     train_dataset = dataset[20000:20000 + args.train_num]
-    if use_unsup_loss:
-        unsup_train_dataset = dataset[20000:]
+    unsup_train_dataset = dataset[20000:]
+    print(len(train_dataset), len(val_dataset), len(test_dataset), len(unsup_train_dataset))
 
-    if use_unsup_loss:
-        print(len(train_dataset), len(val_dataset), len(test_dataset), len(unsup_train_dataset))
-    else:
-        print(len(train_dataset), len(val_dataset), len(test_dataset))
     test_loader = DataLoader(test_dataset, batch_size=batch_size)
     val_loader = DataLoader(val_dataset, batch_size=batch_size)
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
-
-    if use_unsup_loss:
-        unsup_loader = DataLoader(unsup_train_dataset, batch_size=batch_size, shuffle=True)
-        print('num_features : {}\n'.format(dataset.num_features))
+    unsup_loader = DataLoader(unsup_train_dataset, batch_size=batch_size, shuffle=True)
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
