@@ -58,26 +58,23 @@ def train(epoch, use_unsup_loss):
     unsup_loss_all = 0
     unsup_sup_loss_all = 0
 
-    for data, data2 in zip(train_loader, unsup_loader):
+    for data, unsup_data in zip(train_loader, unsup_loader):
         data = data.to(device)
-        data2 = data2.to(device)
+        unsup_data = unsup_data.to(device)
         optimizer.zero_grad()
         
-        pred2 = model(data2)
-        teacher_pred2 = teacher_model(data2)
+        pred = model(unsup_data)
+        teacher_pred = teacher_model(unsup_data)
 
         sup_loss = F.mse_loss(model(data), data.y)
-        unsup_loss = F.mse_loss(pred2, teacher_pred2)
+        unsup_loss = F.mse_loss(pred, teacher_pred)
 
         loss = sup_loss + unsup_loss
-
         loss.backward()
 
         sup_loss_all += sup_loss.item() * data.num_graphs
         unsup_loss_all += unsup_loss.item() * data.num_graphs
-
         loss_all += loss.item() * data.num_graphs
-        # tmp.append(loss.item() * data.num_graphs)
 
         optimizer.step()
         global_step += 1
@@ -122,7 +119,7 @@ if __name__ == '__main__':
     batch_size = 20
     lamda = args.lamda
     use_unsup_loss = True
-    separate_encoder = args.separate_encoder
+    separate_encoder = True
 
     path = osp.join(osp.dirname(osp.realpath(__file__)), '..', 'data', 'QM9')
     transform = T.Compose([MyTransform(), Complete(), T.Distance(norm=False)])
