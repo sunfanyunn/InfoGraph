@@ -2,7 +2,11 @@
 #### Authors: [Fan-yun Sun](https://fanyun-sun.github.io/fanyun-sun.github.io), [Jordan Hoffman](https://jhoffmann.org/), [Vikas Verma](http://vikasverma1077.github.io/), [Jian Tang](https://jian-tang.com/)
 #### [Link to Paper](https://openreview.net/forum?id=r1lfF2NYvH)
 
+
 Tested on pytorch 1.6.0 and [pytorch\_geometric](https://github.com/rusty1s/pytorch_geometric) 1.6.1
+
+Experiments reported on the paper are conducted in 2019 with `pytorch_geometric==1.3.1`. 
+Note that the code regarding of QM9 dataset in pytorch\_geometric has been changed since then. Thus, if you run this repo with `pytorch_geometric>=1.6.1`, you may obtain results differ from those reported on the paper.
 
 Code regarding mutual information maximization is partially referenced from: [https://github.com/rdevon/DIM](https://github.com/rdevon/DIM)
 
