@@ -23,6 +23,9 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+# customized dataset
+from dataset import KKIData
+
 class InfoGraph(nn.Module):
   def __init__(self, hidden_dim, num_gc_layers, alpha=0.5, beta=1., gamma=.1):
     super(InfoGraph, self).__init__()
@@ -89,7 +92,8 @@ if __name__ == '__main__':
     path = osp.join(osp.dirname(osp.realpath(__file__)), '..', 'data', DS)
     # kf = StratifiedKFold(n_splits=10, shuffle=True, random_state=None)
 
-    dataset = TUDataset(path, name=DS).shuffle()
+    # dataset = TUDataset(path, name=DS).shuffle()
+    dataset = KKIData()
     dataset_num_features = max(dataset.num_features, 1)
     dataloader = DataLoader(dataset, batch_size=batch_size)
 
@@ -106,14 +110,14 @@ if __name__ == '__main__':
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
 
     model.eval()
-    emb, y = model.encoder.get_embeddings(dataloader)
+    emb = model.encoder.get_embeddings(dataloader)
     print('===== Before training =====')
     # res = evaluate_embedding(emb, y)
     # accuracies['logreg'].append(res[0])
     # accuracies['svc'].append(res[1])
     # accuracies['linearsvc'].append(res[2])
     # accuracies['randomforest'].append(res[3])
-    print(f"embedding shape: {len(emb)}x{len(emb[0])}, labels shape: {len(y)}")
+    print(f"embedding shape: {len(emb)}x{len(emb[0])}")
     # print(accuracies)
 
     # unsupervised train
@@ -131,13 +135,13 @@ if __name__ == '__main__':
 
         if epoch % log_interval == 0:
             model.eval()
-            emb, y = model.encoder.get_embeddings(dataloader)
+            emb = model.encoder.get_embeddings(dataloader)
             # res = evaluate_embedding(emb, y)
             # accuracies['logreg'].append(res[0])
             # accuracies['svc'].append(res[1])
             # accuracies['linearsvc'].append(res[2])
             # accuracies['randomforest'].append(res[3])
-            print(f"embedding shape: {len(emb)}x{len(emb[0])}, labels shape: {len(y)}")
+            print(f"embedding shape: {len(emb)}x{len(emb[0])}")
             # print(accuracies)
 
     with open('unsupervised.log', 'a+') as f:

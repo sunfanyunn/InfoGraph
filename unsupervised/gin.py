@@ -63,7 +63,7 @@ class Encoder(torch.nn.Module):
 
         device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         ret = []
-        y = []
+        # y = []
         with torch.no_grad():
             for data in loader:
                 data.to(device)
@@ -72,10 +72,10 @@ class Encoder(torch.nn.Module):
                     x = torch.ones((batch.shape[0],1)).to(device)
                 x, _ = self.forward(x, edge_index, batch)
                 ret.append(x.cpu().numpy())
-                y.append(data.y.cpu().numpy())
+                # y.append(data.y.cpu().numpy())
         ret = np.concatenate(ret, 0)
-        y = np.concatenate(y, 0)
-        return ret, y
+        # y = np.concatenate(y, 0)
+        return ret
 
 class Net(torch.nn.Module):
     def __init__(self):

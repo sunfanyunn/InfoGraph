@@ -11,7 +11,6 @@ import torch.nn.functional as F
 class GlobalDiscriminator(nn.Module):
     def __init__(self, args, input_dim):
         super().__init__()
-        
         self.l0 = nn.Linear(32, 32)
         self.l1 = nn.Linear(32, 32)
 
