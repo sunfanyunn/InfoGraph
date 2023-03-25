@@ -31,7 +31,7 @@ def fenchel_dual_loss(l, g, measure=None):
 
     u = torch.mm(g, l.t())
     u = u.reshape(N, N, -1)
-    mask = torch.eye(N).cuda()
+    mask = torch.eye(N)
     n_mask = 1 - mask
 
     E_pos = get_positive_expectation(u, measure, average=False).mean(2)
@@ -73,7 +73,7 @@ def multi_fenchel_dual_loss(l, m, measure=None):
     u = torch.mm(m, l.t())
     u = u.reshape(N, n_multis, N, n_locals).permute(0, 2, 3, 1)
 
-    mask = torch.eye(N).cuda()
+    mask = torch.eye(N)
     n_mask = 1 - mask
 
     E_pos = get_positive_expectation(u, measure, average=False).mean(2).mean(2)
@@ -103,7 +103,7 @@ def nce_loss(l, g):
     u_n = torch.mm(g, l_n.t())
     u_n = u_n.reshape(N, N, n_locs)
 
-    mask = torch.eye(N).unsqueeze(dim=2).cuda()
+    mask = torch.eye(N).unsqueeze(dim=2)
     n_mask = 1 - mask
 
     u_n = (n_mask * u_n) - (10. * (1 - n_mask))  # mask out "self" examples
@@ -142,7 +142,7 @@ def multi_nce_loss(l, m):
     u_n = torch.mm(m_n, l_n.t())
     u_n = u_n.reshape(N, n_multis, N, n_locals).permute(0, 2, 3, 1)
 
-    mask = torch.eye(N)[:, :, None, None].cuda()
+    mask = torch.eye(N)[:, :, None, None]
     n_mask = 1 - mask
 
     u_n = (n_mask * u_n) - (10. * (1 - n_mask))  # mask out "self" examples
@@ -173,7 +173,7 @@ def donsker_varadhan_loss(l, g):
     u = torch.mm(g, l.t())
     u = u.reshape(N, N, n_locs)
 
-    mask = torch.eye(N).cuda()
+    mask = torch.eye(N)
     n_mask = (1 - mask)[:, :, None]
 
     E_pos = (u.mean(2) * mask).sum() / mask.sum()
@@ -212,7 +212,7 @@ def multi_donsker_varadhan_loss(l, m):
     u = torch.mm(m, l.t())
     u = u.reshape(N, n_multis, N, n_locals).permute(0, 2, 3, 1)
 
-    mask = torch.eye(N).cuda()
+    mask = torch.eye(N)
     n_mask = 1 - mask
 
     E_pos = (u.mean(2) * mask).sum() / mask.sum()

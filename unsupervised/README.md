@@ -1,8 +1,7 @@
 ## Usage
 sample command
 ```
-$ python main.py --DS DATASET_NAME --lr 0.001 --num-gc-layers 3
-```
+$ python main.py --DS KKI --lr 0.001 --num-gc-layers 2  --hidden-dim 10```
 
 ## Dataset
 Dataset should be automatically downloaded when you have [pytorch_geometric](https://github.com/rusty1s/pytorch_geometric) installed properly.

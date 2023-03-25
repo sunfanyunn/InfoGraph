@@ -18,8 +18,8 @@ class GlobalDiscriminator(nn.Module):
         self.l2 = nn.Linear(512, 1)
     def forward(self, y, M, data):
 
-        adj = Variable(data['adj'].float(), requires_grad=False).cuda()
-        # h0 = Variable(data['feats'].float()).cuda()
+        adj = Variable(data['adj'].float(), requires_grad=False)
+        # h0 = Variable(data['feats'].float())
         batch_num_nodes = data['num_nodes'].int().numpy()
         M, _ = self.encoder(M, adj, batch_num_nodes)
         # h = F.relu(self.c0(M))

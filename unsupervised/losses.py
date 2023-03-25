@@ -16,8 +16,8 @@ def local_global_loss_(l_enc, g_enc, edge_index, batch, measure):
     num_graphs = g_enc.shape[0]
     num_nodes = l_enc.shape[0]
 
-    pos_mask = torch.zeros((num_nodes, num_graphs)).cuda()
-    neg_mask = torch.ones((num_nodes, num_graphs)).cuda()
+    pos_mask = torch.zeros((num_nodes, num_graphs))
+    neg_mask = torch.ones((num_nodes, num_graphs))
     for nodeidx, graphidx in enumerate(batch):
         pos_mask[nodeidx][graphidx] = 1.
         neg_mask[nodeidx][graphidx] = 0.
@@ -35,8 +35,8 @@ def adj_loss_(l_enc, g_enc, edge_index, batch):
     num_graphs = g_enc.shape[0]
     num_nodes = l_enc.shape[0]
 
-    adj = torch.zeros((num_nodes, num_nodes)).cuda()
-    mask = torch.eye(num_nodes).cuda()
+    adj = torch.zeros((num_nodes, num_nodes))
+    mask = torch.eye(num_nodes)
     for node1, node2 in zip(edge_index[0], edge_index[1]):
         adj[node1.item()][node2.item()] = 1.
         adj[node2.item()][node1.item()] = 1.

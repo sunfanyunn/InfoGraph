@@ -1,8 +1,4 @@
-unsupervised/__pycache__/arguments.cpython-38.pyc
-unsupervised/__pycache__/evaluate_embedding.cpython-38.pyc
-unsupervised/__pycache__/gin.cpython-38.pyc
-unsupervised/cortex_DIM/__pycache__/__init__.cpython-38.pyc
-unsupervised/cortex_DIM/nn_modules/__pycache__/__init__.cpython-38.pyc
-unsupervised/cortex_DIM/nn_modules/__pycache__/mi_networks.cpython-38.pyc
-unsupervised/cortex_DIM/nn_modules/__pycache__/misc.cpython-38.pyc
+unsupervised/__pycache__/*
+unsupervised/cortex_DIM/*
 .DS_Store
+data/*

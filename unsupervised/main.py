@@ -32,6 +32,7 @@ class InfoGraph(nn.Module):
     self.gamma = gamma
     self.prior = args.prior
 
+    # embedding dimention!
     self.embedding_dim = mi_units = hidden_dim * num_gc_layers
     self.encoder = Encoder(dataset_num_features, hidden_dim, num_gc_layers)
 
@@ -59,7 +60,7 @@ class InfoGraph(nn.Module):
         x = torch.ones(batch.shape[0]).to(device)
 
     y, M = self.encoder(x, edge_index, batch)
-    
+
     g_enc = self.global_d(y)
     l_enc = self.local_d(M)
 
@@ -79,8 +80,8 @@ class InfoGraph(nn.Module):
 
 if __name__ == '__main__':
     args = arg_parse()
-    accuracies = {'logreg':[], 'svc':[], 'linearsvc':[], 'randomforest':[]}
-    epochs = 20
+    # accuracies = {'logreg':[], 'svc':[], 'linearsvc':[], 'randomforest':[]}
+    epochs = 2
     log_interval = 1
     batch_size = 128
     lr = args.lr
@@ -97,6 +98,7 @@ if __name__ == '__main__':
     print('num_features: {}'.format(dataset_num_features))
     print('hidden_dim: {}'.format(args.hidden_dim))
     print('num_gc_layers: {}'.format(args.num_gc_layers))
+    print('embedding_dim = hidden_dim x num_gc_layers: {}'.format(args.num_gc_layers*args.hidden_dim))
     print('================')
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -106,13 +108,15 @@ if __name__ == '__main__':
     model.eval()
     emb, y = model.encoder.get_embeddings(dataloader)
     print('===== Before training =====')
-    res = evaluate_embedding(emb, y)
-    accuracies['logreg'].append(res[0])
-    accuracies['svc'].append(res[1])
-    accuracies['linearsvc'].append(res[2])
-    accuracies['randomforest'].append(res[3])
+    # res = evaluate_embedding(emb, y)
+    # accuracies['logreg'].append(res[0])
+    # accuracies['svc'].append(res[1])
+    # accuracies['linearsvc'].append(res[2])
+    # accuracies['randomforest'].append(res[3])
+    print(f"embedding shape: {len(emb)}x{len(emb[0])}, labels shape: {len(y)}")
+    # print(accuracies)
 
-
+    # unsupervised train
     for epoch in range(1, epochs+1):
         loss_all = 0
         model.train()
@@ -128,13 +132,15 @@ if __name__ == '__main__':
         if epoch % log_interval == 0:
             model.eval()
             emb, y = model.encoder.get_embeddings(dataloader)
-            res = evaluate_embedding(emb, y)
-            accuracies['logreg'].append(res[0])
-            accuracies['svc'].append(res[1])
-            accuracies['linearsvc'].append(res[2])
-            accuracies['randomforest'].append(res[3])
-            print(accuracies)
+            # res = evaluate_embedding(emb, y)
+            # accuracies['logreg'].append(res[0])
+            # accuracies['svc'].append(res[1])
+            # accuracies['linearsvc'].append(res[2])
+            # accuracies['randomforest'].append(res[3])
+            print(f"embedding shape: {len(emb)}x{len(emb[0])}, labels shape: {len(y)}")
+            # print(accuracies)
 
     with open('unsupervised.log', 'a+') as f:
-        s = json.dumps(accuracies)
-        f.write('{},{},{},{},{},{}\n'.format(args.DS, args.num_gc_layers, epochs, log_interval, lr, s))
+        # s = json.dumps(accuracies)
+        # f.write('{},{},{},{},{},{}\n'.format(args.DS, args.num_gc_layers, epochs, log_interval, lr, s))
+        f.write('embedding shape: {}x{}\n{}'.format(len(emb), len(emb[0]), emb))

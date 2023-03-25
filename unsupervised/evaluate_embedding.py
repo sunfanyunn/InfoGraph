@@ -63,12 +63,12 @@ def logistic_classify(x, y):
         train_embs, test_embs = x[train_index], x[test_index]
         train_lbls, test_lbls= y[train_index], y[test_index]
 
-        train_embs, train_lbls = torch.from_numpy(train_embs).cuda(), torch.from_numpy(train_lbls).cuda()
-        test_embs, test_lbls= torch.from_numpy(test_embs).cuda(), torch.from_numpy(test_lbls).cuda()
+        train_embs, train_lbls = torch.from_numpy(train_embs), torch.from_numpy(train_lbls)
+        test_embs, test_lbls= torch.from_numpy(test_embs), torch.from_numpy(test_lbls)
 
 
         log = LogReg(hid_units, nb_classes)
-        log.cuda()
+        log
         opt = torch.optim.Adam(log.parameters(), lr=0.01, weight_decay=0.0)
 
         best_val = 0

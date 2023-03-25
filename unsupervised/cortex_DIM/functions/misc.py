@@ -32,7 +32,7 @@ def random_permute(X):
 
     """
     X = X.transpose(1, 2)
-    b = torch.rand((X.size(0), X.size(1))).cuda()
+    b = torch.rand((X.size(0), X.size(1)))
     idx = b.sort(0)[1]
     adx = torch.range(0, X.size(1) - 1).long()
     X = X[idx, adx[None, :]].transpose(1, 2)
