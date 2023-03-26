@@ -24,7 +24,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 # customized dataset
-from dataset import KKIData
+from dataset import KKIData, MyData
 
 class InfoGraph(nn.Module):
   def __init__(self, hidden_dim, num_gc_layers, alpha=0.5, beta=1., gamma=.1):
@@ -86,15 +86,16 @@ if __name__ == '__main__':
     # accuracies = {'logreg':[], 'svc':[], 'linearsvc':[], 'randomforest':[]}
     epochs = 2
     log_interval = 1
-    batch_size = 128
+    batch_size = 32
     lr = args.lr
     DS = args.DS
     path = osp.join(osp.dirname(osp.realpath(__file__)), '..', 'data', DS)
     # kf = StratifiedKFold(n_splits=10, shuffle=True, random_state=None)
 
     # dataset = TUDataset(path, name=DS).shuffle()
-    dataset = KKIData()
-    dataset_num_features = max(dataset.num_features, 1)
+    dataset = MyData()
+    # dataset_num_features = max(dataset.num_features, 1)
+    dataset_num_features = 1
     dataloader = DataLoader(dataset, batch_size=batch_size)
 
     print('================')
