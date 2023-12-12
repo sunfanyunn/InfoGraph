@@ -10,7 +10,7 @@ Note that the code regarding of QM9 dataset in pytorch\_geometric has been chang
 
 Code regarding mutual information maximization is partially referenced from: [https://github.com/rdevon/DIM](https://github.com/rdevon/DIM)
 
-#### Cite
+### Citation
 
 Please cite [our paper](https://openreview.net/pdf?id=r1lfF2NYvH) if you use this code in your own work:
 
