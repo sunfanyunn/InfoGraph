@@ -15,24 +15,6 @@ import pandas as pd
 import torch
 import torch.nn as nn
 
-def draw_plot(datadir, DS, embeddings, fname, max_nodes=None):
-    return
-    import seaborn as sns
-    graphs = read_graphfile(datadir, DS, max_nodes=max_nodes)
-    labels = [graph.graph['label'] for graph in graphs]
-
-    labels = preprocessing.LabelEncoder().fit_transform(labels)
-    x, y = np.array(embeddings), np.array(labels)
-    print('fitting TSNE ...')
-    x = TSNE(n_components=2).fit_transform(x)
-
-    plt.close()
-    df = pd.DataFrame(columns=['x0', 'x1', 'Y'])
-
-    df['x0'], df['x1'], df['Y'] = x[:,0], x[:,1], y
-    sns.pairplot(x_vars=['x0'], y_vars=['x1'], data=df, hue="Y", size=5)
-    plt.legend()
-    plt.savefig(fname)
 
 class LogReg(nn.Module):
     def __init__(self, ft_in, nb_classes):
@@ -139,6 +121,7 @@ def linearsvc_classify(x, y, search):
         accuracies.append(accuracy_score(y_test, classifier.predict(x_test)))
     return np.mean(accuracies)
 
+
 def evaluate_embedding(embeddings, labels, search=True):
     labels = preprocessing.LabelEncoder().fit_transform(labels)
     x, y = np.array(embeddings), np.array(labels)
@@ -161,6 +144,7 @@ def evaluate_embedding(embeddings, labels, search=True):
     print('randomforest', np.mean(randomforest_accuracies))
 
     return np.mean(logreg_accuracies), np.mean(svc_accuracies), np.mean(linearsvc_accuracies), np.mean(randomforest_accuracies)
+
 
 if __name__ == '__main__':
     evaluate_embedding('./data', 'ENZYMES', np.load('tmp/emb.npy'))

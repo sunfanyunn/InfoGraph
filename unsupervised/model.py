@@ -1,8 +1,4 @@
-from cortex_DIM.nn_modules.mi_networks import MIFCNet, MI1x1ConvNet
-from torch import optim
 from torch.autograd import Variable
-import json
-import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -30,6 +26,7 @@ class GlobalDiscriminator(nn.Module):
         h = F.relu(self.l1(h))
         return self.l2(h)
 
+
 class PriorDiscriminator(nn.Module):
     def __init__(self, input_dim):
         super().__init__()
@@ -41,6 +38,7 @@ class PriorDiscriminator(nn.Module):
         h = F.relu(self.l0(x))
         h = F.relu(self.l1(h))
         return torch.sigmoid(self.l2(h))
+
 
 class FF(nn.Module):
     def __init__(self, input_dim):
@@ -63,4 +61,3 @@ class FF(nn.Module):
 
     def forward(self, x):
         return self.block(x) + self.linear_shortcut(x)
-

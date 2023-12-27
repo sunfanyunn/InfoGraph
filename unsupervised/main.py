@@ -1,27 +1,17 @@
-# Optional: eliminating warnings
-def warn(*args, **kwargs):
-    pass
-import warnings
-warnings.warn = warn
-
 from arguments import arg_parse
-from cortex_DIM.nn_modules.mi_networks import MIFCNet, MI1x1ConvNet
 from evaluate_embedding import evaluate_embedding
 from gin import Encoder
 from losses import local_global_loss_
 from model import FF, PriorDiscriminator
-from torch import optim
-from torch.autograd import Variable
 from torch_geometric.data import DataLoader
 from torch_geometric.datasets import TUDataset
 import json
 import json
-import numpy as np
 import os.path as osp
-import sys
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+
 
 class InfoGraph(nn.Module):
   def __init__(self, hidden_dim, num_gc_layers, alpha=0.5, beta=1., gamma=.1):
@@ -77,6 +67,7 @@ class InfoGraph(nn.Module):
     
     return local_global_loss + PRIOR
 
+
 if __name__ == '__main__':
     args = arg_parse()
     accuracies = {'logreg':[], 'svc':[], 'linearsvc':[], 'randomforest':[]}
@@ -111,7 +102,6 @@ if __name__ == '__main__':
     accuracies['svc'].append(res[1])
     accuracies['linearsvc'].append(res[2])
     accuracies['randomforest'].append(res[3])
-
 
     for epoch in range(1, epochs+1):
         loss_all = 0
